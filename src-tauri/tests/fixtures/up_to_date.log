@@ -1,0 +1,23 @@
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows
+-------------------------------------------------------------------------------
+
+  Started : Thursday, March 20, 2026 3:00:00 PM
+   Source : C:\Users\petar\
+     Dest : J:\local-backup\c-user-petar-backup\
+
+    Files : *.*
+
+  Options : *.* /S /MT:128
+
+------------------------------------------------------------------------------
+
+                           Total    Copied   Skipped  Mismatch    FAILED    Extras
+    Dirs :        45         0        45         0         0         0
+   Files :       892         0       892         0         0         0
+   Bytes :   2.3 g         0    2.3 g         0         0         0
+
+  Speed :                   0 Bytes/sec.
+  Speed :                   0 MegaBytes/min.
+
+  Ended : Thursday, March 20, 2026 3:00:02 PM

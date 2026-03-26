@@ -1,3 +1,5 @@
+pub mod config;
+pub mod log_parser;
 pub mod models;
 pub mod validation;
 

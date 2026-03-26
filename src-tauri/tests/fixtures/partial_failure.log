@@ -1,0 +1,26 @@
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows
+-------------------------------------------------------------------------------
+
+  Started : Thursday, March 20, 2026 4:00:00 PM
+   Source : D:\
+     Dest : J:\local-backup\d-backup\
+
+    Files : *.*
+
+  Options : *.* /S /MT:128
+
+------------------------------------------------------------------------------
+
+2026/03/20 16:00:05 ERROR 5 (0x00000005) Copying File D:\locked-file.dat
+Access is denied.
+
+                           Total    Copied   Skipped  Mismatch    FAILED    Extras
+    Dirs :       120        30        90         0         0         0
+   Files :      1500       201      1296         0         3         0
+   Bytes :   5.1 g   1.2 g    3.8 g         0   15.2 m         0
+
+  Speed :            98000000 Bytes/sec.
+  Speed :            5610.352 MegaBytes/min.
+
+  Ended : Thursday, March 20, 2026 4:02:15 PM
