@@ -1,6 +1,8 @@
 pub mod config;
+pub mod history;
 pub mod log_parser;
 pub mod models;
+pub mod process;
 pub mod validation;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
