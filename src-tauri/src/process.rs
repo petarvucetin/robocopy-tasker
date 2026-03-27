@@ -99,9 +99,11 @@ impl ProcessManager {
             args.push("/TEE".into());
         }
 
-        // Always include /NP and /BYTES for consistent log parsing
+        // Always include defaults for consistent behavior
         args.push("/NP".into());
         args.push("/BYTES".into());
+        args.push("/ETA".into());
+        args.push("/Z".into());
 
         args
     }

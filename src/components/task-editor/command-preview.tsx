@@ -35,6 +35,7 @@ export function buildCommandArgs(
   }
   const logPath = options.log || `${logDirectory}\\${taskName.replace(/[^a-zA-Z0-9_-]/g, "-")}.log`;
   args.push(`/LOG:${logPath}`);
+  args.push("/NP", "/BYTES", "/ETA", "/Z");
 
   return args;
 }
