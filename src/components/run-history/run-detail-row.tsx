@@ -2,14 +2,8 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import type { Run } from "../../lib/types";
 import { getExitColor, getExitLabel, getExitStatus } from "../../lib/exit-codes";
-
-function formatBytes(bytes: number | null): string {
-  if (bytes === null) return "-";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
+import { formatBytes } from "../../lib/format";
+import { LogEntriesTable } from "../log-entries/log-entries-table";
 
 interface RunDetailRowProps {
   run: Run;
@@ -17,6 +11,7 @@ interface RunDetailRowProps {
 
 export function RunDetailRow({ run }: RunDetailRowProps) {
   const [expanded, setExpanded] = useState(false);
+  const [showEntries, setShowEntries] = useState(false);
   const status = getExitStatus(run.exit_code);
   const color = getExitColor(status);
   const date = new Date(run.started_at).toLocaleDateString();
@@ -60,6 +55,13 @@ export function RunDetailRow({ run }: RunDetailRowProps) {
               {run.exit_code ?? "N/A"} ({getExitLabel(run.exit_code)})
             </div>
           </div>
+          <button
+            className="mt-2 text-xs text-muted-foreground hover:text-foreground underline"
+            onClick={() => setShowEntries(!showEntries)}
+          >
+            {showEntries ? "Hide Details" : "View Details"}
+          </button>
+          {showEntries && <LogEntriesTable runId={run.id} />}
         </div>
       )}
     </div>
