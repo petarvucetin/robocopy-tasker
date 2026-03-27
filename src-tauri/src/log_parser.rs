@@ -1,4 +1,4 @@
-use crate::models::RunSummary;
+use crate::models::{ParsedEntry, RunSummary};
 use regex::Regex;
 use std::fs;
 use std::path::Path;
@@ -56,6 +56,62 @@ fn parse_summary_line(line: &str) -> Option<(i64, i64, i64, i64)> {
     let skipped = parts[2].parse().ok()?;
     let failed = parts[4].parse().ok()?;
     Some((total, copied, skipped, failed))
+}
+
+const ENTRY_TAGS: &[(&str, &str, bool)] = &[
+    ("*EXTRA Dir", "Extra Dir", true),
+    ("*EXTRA File", "Extra File", false),
+    ("New File", "New File", false),
+    ("New Dir", "New Dir", true),
+    ("Newer", "Newer", false),
+    ("Older", "Older", false),
+    ("Modified", "Modified", false),
+];
+
+pub fn parse_entry_line(line: &str) -> Option<ParsedEntry> {
+    let trimmed = line.trim();
+    if let Some(error_entry) = parse_error_line(trimmed) {
+        return Some(error_entry);
+    }
+    for &(tag, name, is_dir) in ENTRY_TAGS {
+        if let Some(pos) = trimmed.find(tag) {
+            let after_tag = trimmed[pos + tag.len()..].trim();
+            if is_dir {
+                if !after_tag.is_empty() {
+                    return Some(ParsedEntry {
+                        entry_type: name.to_string(),
+                        size: None,
+                        path: after_tag.to_string(),
+                    });
+                }
+            } else {
+                if let Some((size_str, path)) = split_size_and_path(after_tag) {
+                    return Some(ParsedEntry {
+                        entry_type: name.to_string(),
+                        size: parse_size_value(&size_str),
+                        path: path.to_string(),
+                    });
+                }
+            }
+        }
+    }
+    None
+}
+
+fn split_size_and_path(s: &str) -> Option<(String, String)> {
+    let re = Regex::new(r"^(\d+)\s+(.+)$").ok()?;
+    let caps = re.captures(s)?;
+    Some((caps[1].to_string(), caps[2].trim().to_string()))
+}
+
+fn parse_error_line(line: &str) -> Option<ParsedEntry> {
+    let re = Regex::new(r"^\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}\s+ERROR\s+\d+\s+\(0x[0-9a-fA-F]+\)\s+\w+\s+\w+\s+(.+)$").ok()?;
+    let caps = re.captures(line)?;
+    Some(ParsedEntry {
+        entry_type: "Failed".to_string(),
+        size: None,
+        path: caps[1].trim().to_string(),
+    })
 }
 
 pub fn parse_robocopy_log(path: &Path) -> RunSummary {
@@ -169,5 +225,86 @@ mod tests {
     fn test_parse_missing_log() {
         let summary = parse_robocopy_log(Path::new("nonexistent.log"));
         assert!(summary.files_total.is_none());
+    }
+
+    #[test]
+    fn test_parse_entry_new_file() {
+        let line = "\t  New File  \t\t       5678901\tC:\\Users\\petar\\Documents\\report.docx";
+        let entry = parse_entry_line(line).unwrap();
+        assert_eq!(entry.entry_type, "New File");
+        assert_eq!(entry.size, Some(5678901));
+        assert_eq!(entry.path, "C:\\Users\\petar\\Documents\\report.docx");
+    }
+
+    #[test]
+    fn test_parse_entry_extra_dir() {
+        let line = "\t*EXTRA Dir  \t\tJ:\\local-backup\\c-user-petar-backup\\old-archive\\";
+        let entry = parse_entry_line(line).unwrap();
+        assert_eq!(entry.entry_type, "Extra Dir");
+        assert_eq!(entry.size, None);
+        assert_eq!(entry.path, "J:\\local-backup\\c-user-petar-backup\\old-archive\\");
+    }
+
+    #[test]
+    fn test_parse_entry_extra_file() {
+        let line = "\t*EXTRA File\t\t          1234\tJ:\\local-backup\\deleted-notes.txt";
+        let entry = parse_entry_line(line).unwrap();
+        assert_eq!(entry.entry_type, "Extra File");
+        assert_eq!(entry.size, Some(1234));
+        assert_eq!(entry.path, "J:\\local-backup\\deleted-notes.txt");
+    }
+
+    #[test]
+    fn test_parse_entry_newer() {
+        let line = "\t    Newer   \t\t         90120\tC:\\Users\\petar\\Photos\\vacation.jpg";
+        let entry = parse_entry_line(line).unwrap();
+        assert_eq!(entry.entry_type, "Newer");
+        assert_eq!(entry.size, Some(90120));
+        assert_eq!(entry.path, "C:\\Users\\petar\\Photos\\vacation.jpg");
+    }
+
+    #[test]
+    fn test_parse_entry_modified() {
+        let line = "\t Modified   \t\t          4096\tC:\\Users\\petar\\.config\\settings.json";
+        let entry = parse_entry_line(line).unwrap();
+        assert_eq!(entry.entry_type, "Modified");
+        assert_eq!(entry.size, Some(4096));
+        assert_eq!(entry.path, "C:\\Users\\petar\\.config\\settings.json");
+    }
+
+    #[test]
+    fn test_parse_entry_new_dir() {
+        let line = "\t  New Dir   \t\tC:\\Users\\petar\\Projects\\new-project\\";
+        let entry = parse_entry_line(line).unwrap();
+        assert_eq!(entry.entry_type, "New Dir");
+        assert_eq!(entry.size, None);
+        assert_eq!(entry.path, "C:\\Users\\petar\\Projects\\new-project\\");
+    }
+
+    #[test]
+    fn test_parse_entry_error_line() {
+        let line = "2026/03/20 16:00:05 ERROR 5 (0x00000005) Copying File D:\\locked-file.dat";
+        let entry = parse_entry_line(line).unwrap();
+        assert_eq!(entry.entry_type, "Failed");
+        assert_eq!(entry.size, None);
+        assert_eq!(entry.path, "D:\\locked-file.dat");
+    }
+
+    #[test]
+    fn test_parse_entry_ignores_summary_line() {
+        let line = "   Files :       892       142       750         0         0         0";
+        assert!(parse_entry_line(line).is_none());
+    }
+
+    #[test]
+    fn test_parse_entry_ignores_header() {
+        let line = "   ROBOCOPY     ::     Robust File Copy for Windows";
+        assert!(parse_entry_line(line).is_none());
+    }
+
+    #[test]
+    fn test_parse_entry_ignores_dashes() {
+        let line = "------------------------------------------------------------------------------";
+        assert!(parse_entry_line(line).is_none());
     }
 }
