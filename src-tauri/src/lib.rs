@@ -180,6 +180,11 @@ fn get_log_entry_counts(
 }
 
 #[tauri::command]
+fn reset_history(state: State<'_, Arc<AppState>>) -> Result<(), String> {
+    state.history.reset()
+}
+
+#[tauri::command]
 fn remove_path(path: String) -> Result<(), String> {
     let p = Path::new(&path);
     if !p.exists() {
@@ -337,6 +342,9 @@ pub fn run() {
             // Mark any runs that were in-progress when the app last closed
             let _ = history_mgr.mark_orphaned_runs();
 
+            // Fix directory entry paths from pre-fix parser
+            let _ = history_mgr.fix_directory_entry_paths();
+
             // Clean up old runs based on configured retention
             let config = config_mgr.load();
             let _ = history_mgr.cleanup_old_runs(config.settings.history_retention_days);
@@ -376,6 +384,7 @@ pub fn run() {
             get_log_entry_counts,
             remove_path,
             delete_log_entry,
+            reset_history,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

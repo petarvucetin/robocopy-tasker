@@ -288,6 +288,66 @@ impl HistoryManager {
         Ok(deleted as u64)
     }
 
+    pub fn reset(&self) -> Result<(), String> {
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {}", e))?;
+        conn.execute_batch("DELETE FROM run_entries; DELETE FROM runs;")
+            .map_err(|e| format!("Failed to reset database: {}", e))?;
+        Ok(())
+    }
+
+    /// Fix directory entry paths that have a leading number prefix
+    /// from the pre-fix parser (e.g. "-1    J:\path\" → "J:\path\").
+    pub fn fix_directory_entry_paths(&self) -> Result<u64, String> {
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {}", e))?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, path FROM run_entries
+                 WHERE entry_type IN ('Extra Dir', 'New Dir')",
+            )
+            .map_err(|e| format!("Failed to prepare: {}", e))?;
+        let entries: Vec<(i64, String)> = stmt
+            .query_map([], |row| {
+                Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+            })
+            .map_err(|e| format!("Failed to query: {}", e))?
+            .filter_map(|r| r.ok())
+            .collect();
+
+        let mut fixed = 0u64;
+        for (id, path) in &entries {
+            if let Some(clean) = Self::strip_path_prefix(path) {
+                conn.execute(
+                    "UPDATE run_entries SET path = ?1 WHERE id = ?2",
+                    params![clean, id],
+                )
+                .map_err(|e| format!("Failed to update: {}", e))?;
+                fixed += 1;
+            }
+        }
+        Ok(fixed)
+    }
+
+    /// If a path starts with a number prefix instead of a drive letter,
+    /// find the drive letter (X:\) and return the path from there.
+    fn strip_path_prefix(path: &str) -> Option<String> {
+        let bytes = path.as_bytes();
+        // Already starts with drive letter — no fix needed
+        if bytes.len() >= 3 && bytes[0].is_ascii_alphabetic() && path[1..].starts_with(":\\") {
+            return None;
+        }
+        // UNC path — no fix needed
+        if path.starts_with("\\\\") {
+            return None;
+        }
+        // Find "X:\" pattern in the string
+        if let Some(pos) = path.find(":\\") {
+            if pos > 0 && bytes[pos - 1].is_ascii_alphabetic() {
+                return Some(path[pos - 1..].to_string());
+            }
+        }
+        None
+    }
+
     pub fn mark_orphaned_runs(&self) -> Result<u64, String> {
         let conn = self.conn.lock().map_err(|e| format!("Lock error: {}", e))?;
         let updated = conn

@@ -21,4 +21,5 @@ export const commands = {
     invoke<[string, number][]>("get_log_entry_counts", { runId }),
   removePath: (path: string) => invoke<void>("remove_path", { path }),
   deleteLogEntry: (entryId: number) => invoke<void>("delete_log_entry", { entryId }),
+  resetHistory: () => invoke<void>("reset_history"),
 };
