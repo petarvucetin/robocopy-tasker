@@ -164,6 +164,72 @@ pub fn parse_robocopy_log(path: &Path) -> RunSummary {
     summary
 }
 
+pub fn parse_robocopy_log_full(path: &Path) -> (RunSummary, Vec<ParsedEntry>) {
+    use std::io::{BufRead, BufReader};
+
+    let empty_summary = RunSummary {
+        dirs_total: None, dirs_copied: None, dirs_skipped: None, dirs_failed: None,
+        files_total: None, files_copied: None, files_skipped: None, files_failed: None,
+        bytes_total: None, bytes_copied: None, speed_bytes_per_sec: None,
+    };
+
+    let file = match fs::File::open(path) {
+        Ok(f) => f,
+        Err(_) => return (empty_summary, Vec::new()),
+    };
+
+    let reader = BufReader::new(file);
+    let mut summary = empty_summary;
+    let mut entries = Vec::new();
+
+    for line_result in reader.lines() {
+        let line = match line_result {
+            Ok(l) => l,
+            Err(_) => continue,
+        };
+        let trimmed = line.trim();
+
+        // Parse summary lines (same logic as parse_robocopy_log)
+        if trimmed.starts_with("Dirs :") || trimmed.starts_with("Dirs:") {
+            if let Some((total, copied, skipped, failed)) = parse_summary_line(trimmed) {
+                summary.dirs_total = Some(total);
+                summary.dirs_copied = Some(copied);
+                summary.dirs_skipped = Some(skipped);
+                summary.dirs_failed = Some(failed);
+            }
+        }
+        if trimmed.starts_with("Files :") || trimmed.starts_with("Files:") {
+            if let Some((total, copied, skipped, failed)) = parse_summary_line(trimmed) {
+                summary.files_total = Some(total);
+                summary.files_copied = Some(copied);
+                summary.files_skipped = Some(skipped);
+                summary.files_failed = Some(failed);
+            }
+        }
+        if trimmed.starts_with("Bytes :") || trimmed.starts_with("Bytes:") {
+            if let Some((total, copied, _skipped, _failed)) = parse_summary_line(trimmed) {
+                summary.bytes_total = Some(total);
+                summary.bytes_copied = Some(copied);
+            }
+        }
+        if trimmed.contains("Bytes/sec") {
+            let speed_re = Regex::new(r"([\d]+)\s*Bytes/sec").ok();
+            if let Some(re) = speed_re {
+                if let Some(caps) = re.captures(trimmed) {
+                    summary.speed_bytes_per_sec = caps[1].parse().ok();
+                }
+            }
+        }
+
+        // Parse entry lines
+        if let Some(entry) = parse_entry_line(&line) {
+            entries.push(entry);
+        }
+    }
+
+    (summary, entries)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -306,5 +372,51 @@ mod tests {
     fn test_parse_entry_ignores_dashes() {
         let line = "------------------------------------------------------------------------------";
         assert!(parse_entry_line(line).is_none());
+    }
+
+    #[test]
+    fn test_parse_full_success_log() {
+        let (summary, entries) = parse_robocopy_log_full(&fixture_path("success.log"));
+        assert_eq!(summary.dirs_total, Some(245));
+        assert_eq!(summary.files_copied, Some(142));
+
+        assert_eq!(entries.len(), 7);
+
+        let types: Vec<&str> = entries.iter().map(|e| e.entry_type.as_str()).collect();
+        assert!(types.contains(&"Extra Dir"));
+        assert!(types.contains(&"Extra File"));
+        assert!(types.contains(&"New File"));
+        assert!(types.contains(&"New Dir"));
+        assert!(types.contains(&"Newer"));
+        assert!(types.contains(&"Modified"));
+
+        let new_file = entries.iter().find(|e| e.path.contains("report.docx")).unwrap();
+        assert_eq!(new_file.entry_type, "New File");
+        assert_eq!(new_file.size, Some(5678901));
+    }
+
+    #[test]
+    fn test_parse_full_partial_failure() {
+        let (summary, entries) = parse_robocopy_log_full(&fixture_path("partial_failure.log"));
+        assert_eq!(summary.files_failed, Some(3));
+
+        assert_eq!(entries.len(), 4);
+
+        let failed = entries.iter().find(|e| e.entry_type == "Failed").unwrap();
+        assert_eq!(failed.path, "D:\\locked-file.dat");
+    }
+
+    #[test]
+    fn test_parse_full_empty_log() {
+        let (summary, entries) = parse_robocopy_log_full(&fixture_path("empty.log"));
+        assert!(summary.files_total.is_none());
+        assert!(entries.is_empty());
+    }
+
+    #[test]
+    fn test_parse_full_missing_log() {
+        let (summary, entries) = parse_robocopy_log_full(Path::new("nonexistent.log"));
+        assert!(summary.files_total.is_none());
+        assert!(entries.is_empty());
     }
 }
