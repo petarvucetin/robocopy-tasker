@@ -19,4 +19,6 @@ export const commands = {
     invoke<LogEntry[]>("get_log_entries", { runId, entryType, offset, limit }),
   getLogEntryCounts: (runId: number) =>
     invoke<[string, number][]>("get_log_entry_counts", { runId }),
+  removePath: (path: string) => invoke<void>("remove_path", { path }),
+  deleteLogEntry: (entryId: number) => invoke<void>("delete_log_entry", { entryId }),
 };

@@ -179,6 +179,30 @@ fn get_log_entry_counts(
     state.history.get_entry_counts(run_id)
 }
 
+#[tauri::command]
+fn remove_path(path: String) -> Result<(), String> {
+    let p = Path::new(&path);
+    if !p.exists() {
+        return Err(format!("Path does not exist: {}", path));
+    }
+    if p.is_dir() {
+        std::fs::remove_dir_all(p)
+            .map_err(|e| format!("Failed to remove directory: {}", e))?;
+    } else {
+        std::fs::remove_file(p)
+            .map_err(|e| format!("Failed to remove file: {}", e))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn delete_log_entry(
+    state: State<'_, Arc<AppState>>,
+    entry_id: i64,
+) -> Result<(), String> {
+    state.history.delete_entry(entry_id)
+}
+
 // ---------------------------------------------------------------------------
 // Private helper
 // ---------------------------------------------------------------------------
@@ -350,6 +374,8 @@ pub fn run() {
             cleanup_old_runs,
             get_log_entries,
             get_log_entry_counts,
+            remove_path,
+            delete_log_entry,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

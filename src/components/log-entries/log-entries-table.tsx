@@ -1,3 +1,4 @@
+import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { LogEntry } from "../../lib/types";
 import { commands } from "../../lib/commands";
@@ -15,6 +16,7 @@ export function LogEntriesTable({ runId }: LogEntriesTableProps) {
   const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
+  const [removing, setRemoving] = useState<number | null>(null);
 
   useEffect(() => {
     commands.getLogEntryCounts(runId).then(setCounts).catch(console.error);
@@ -43,6 +45,29 @@ export function LogEntriesTable({ runId }: LogEntriesTableProps) {
   useEffect(() => {
     loadEntries(0, selectedType);
   }, [loadEntries, selectedType]);
+
+  const handleRemove = async (entry: LogEntry) => {
+    const isDir = entry.entry_type.includes("Dir");
+    const kind = isDir ? "directory" : "file";
+    if (!confirm(`Delete ${kind}?\n\n${entry.path}\n\nThis cannot be undone.`)) {
+      return;
+    }
+    setRemoving(entry.id);
+    try {
+      await commands.removePath(entry.path);
+      await commands.deleteLogEntry(entry.id);
+      setEntries((prev) => prev.filter((e) => e.id !== entry.id));
+      setCounts((prev) =>
+        prev
+          .map(([t, c]) => (t === entry.entry_type ? [t, c - 1] as [string, number] : [t, c] as [string, number]))
+          .filter(([, c]) => c > 0),
+      );
+    } catch (e) {
+      alert(`Failed to remove: ${e}`);
+    } finally {
+      setRemoving(null);
+    }
+  };
 
   const totalCount = counts.reduce((sum, [, c]) => sum + c, 0);
 
@@ -73,12 +98,21 @@ export function LogEntriesTable({ runId }: LogEntriesTableProps) {
           <span className="w-20 shrink-0">Type</span>
           <span className="w-20 shrink-0 text-right">Size</span>
           <span className="flex-1 min-w-0">Path</span>
+          <span className="w-8 shrink-0"></span>
         </div>
         {entries.map((entry) => (
-          <div key={entry.id} className="flex gap-2 px-1 py-0.5 hover:bg-accent/30">
+          <div key={entry.id} className="flex gap-2 px-1 py-0.5 hover:bg-accent/30 items-center">
             <span className="w-20 shrink-0 text-muted-foreground">{entry.entry_type}</span>
             <span className="w-20 shrink-0 text-right">{formatBytes(entry.size)}</span>
             <span className="flex-1 min-w-0 truncate" title={entry.path}>{entry.path}</span>
+            <button
+              className="w-8 shrink-0 flex items-center justify-center text-muted-foreground hover:text-red-500 disabled:opacity-30"
+              onClick={() => handleRemove(entry)}
+              disabled={removing === entry.id}
+              title={`Remove ${entry.path}`}
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
           </div>
         ))}
         {entries.length === 0 && !loading && (

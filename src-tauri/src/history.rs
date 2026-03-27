@@ -194,6 +194,16 @@ impl HistoryManager {
         }
     }
 
+    pub fn delete_entry(
+        &self,
+        entry_id: i64,
+    ) -> Result<(), String> {
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {}", e))?;
+        conn.execute("DELETE FROM run_entries WHERE id = ?1", params![entry_id])
+            .map_err(|e| format!("Failed to delete entry: {}", e))?;
+        Ok(())
+    }
+
     pub fn get_entry_counts(
         &self,
         run_id: i64,
