@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { AppConfig, Group, Run, RunningTask, Settings, Task } from "./types";
+import type { AppConfig, Group, LogEntry, Run, RunningTask, Settings, Task } from "./types";
 
 export const commands = {
   getConfig: () => invoke<AppConfig>("get_config"),
@@ -15,4 +15,8 @@ export const commands = {
   getRuns: (taskId?: string, limit?: number) => invoke<Run[]>("get_runs", { taskId, limit }),
   deleteRun: (runId: number) => invoke<void>("delete_run", { runId }),
   cleanupOldRuns: (days?: number) => invoke<number>("cleanup_old_runs", { days }),
+  getLogEntries: (runId: number, entryType?: string, offset?: number, limit?: number) =>
+    invoke<LogEntry[]>("get_log_entries", { runId, entryType, offset, limit }),
+  getLogEntryCounts: (runId: number) =>
+    invoke<[string, number][]>("get_log_entry_counts", { runId }),
 };

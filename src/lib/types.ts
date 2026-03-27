@@ -73,6 +73,14 @@ export interface Run {
   speed_bytes_per_sec: number | null;
 }
 
+export interface LogEntry {
+  id: number;
+  run_id: number;
+  entry_type: string;
+  size: number | null;
+  path: string;
+}
+
 export interface RunningTask {
   task_id: string;
   pid: number;
