@@ -7,17 +7,19 @@ pub mod validation;
 
 use config::ConfigManager;
 use history::HistoryManager;
-use models::{AppConfig, Group, Run, RunSummary, RunningTask, Settings, Task};
+use models::{AppConfig, Group, LogEntry, Run, RunSummary, RunningTask, Settings, Task};
 use process::{resolve_log_path, ProcessManager};
 
 use std::path::Path;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use tauri::{AppHandle, Emitter, Manager, State};
 
 pub struct AppState {
     pub config: ConfigManager,
     pub history: HistoryManager,
     pub process: ProcessManager,
+    pub pending_completions: AtomicUsize,
 }
 
 // ---------------------------------------------------------------------------
@@ -117,54 +119,12 @@ fn run_group(
 
 #[tauri::command]
 fn cancel_task(
-    app: AppHandle,
     state: State<'_, Arc<AppState>>,
     task_id: String,
 ) -> Result<(), String> {
-    // Kill the process
+    // Mark as cancelled and kill the process.
+    // The background thread handles history recording and event emission.
     state.process.cancel_task(&task_id)?;
-
-    // Get the running task info before removing it
-    let running_tasks = state.process.get_running_tasks();
-    let running = running_tasks
-        .iter()
-        .find(|r| r.task_id == task_id)
-        .cloned();
-
-    // Remove from running list
-    state.process.remove_running(&task_id);
-
-    // Record cancelled exit code (-1) in history
-    if let Some(info) = running {
-        let finished_at = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S").to_string();
-        let empty_summary = RunSummary {
-            dirs_total: None,
-            dirs_copied: None,
-            dirs_skipped: None,
-            dirs_failed: None,
-            files_total: None,
-            files_copied: None,
-            files_skipped: None,
-            files_failed: None,
-            bytes_total: None,
-            bytes_copied: None,
-            speed_bytes_per_sec: None,
-        };
-        let _ = state
-            .history
-            .complete_run(info.run_id, &finished_at, -1, &empty_summary);
-
-        // Emit task-completed event
-        let _ = app.emit(
-            "task-completed",
-            serde_json::json!({
-                "task_id": task_id,
-                "run_id": info.run_id,
-                "exit_code": -1,
-            }),
-        );
-    }
-
     Ok(())
 }
 
@@ -190,9 +150,33 @@ fn delete_run(state: State<'_, Arc<AppState>>, run_id: i64) -> Result<(), String
 #[tauri::command]
 fn cleanup_old_runs(
     state: State<'_, Arc<AppState>>,
-    retention_days: u32,
+    days: u32,
 ) -> Result<u64, String> {
-    state.history.cleanup_old_runs(retention_days)
+    state.history.cleanup_old_runs(days)
+}
+
+#[tauri::command]
+fn get_log_entries(
+    state: State<'_, Arc<AppState>>,
+    run_id: i64,
+    entry_type: Option<String>,
+    offset: Option<u32>,
+    limit: Option<u32>,
+) -> Result<Vec<LogEntry>, String> {
+    state.history.get_entries(
+        run_id,
+        entry_type.as_deref(),
+        offset.unwrap_or(0),
+        limit.unwrap_or(100),
+    )
+}
+
+#[tauri::command]
+fn get_log_entry_counts(
+    state: State<'_, Arc<AppState>>,
+    run_id: i64,
+) -> Result<Vec<(String, i64)>, String> {
+    state.history.get_entry_counts(run_id)
 }
 
 // ---------------------------------------------------------------------------
@@ -247,20 +231,30 @@ fn spawn_single_task(
 
     // Background thread: wait for process exit, parse log, update history, emit event
     std::thread::spawn(move || {
-        let exit_code = {
-            let mut child = child_handle.lock().unwrap();
-            match child.wait() {
-                Ok(status) => status.code().unwrap_or(-1),
-                Err(_) => -1,
-            }
-        };
+        // Poll-based wait — releases child lock between checks so cancel_task can kill
+        let raw_exit_code = ProcessManager::wait_for_exit(&child_handle);
+
+        // Signal that post-exit processing has started
+        state_clone.pending_completions.fetch_add(1, Ordering::SeqCst);
 
         // Remove from running list
         state_clone.process.remove_running(&task_id);
 
+        // Check if the task was cancelled — if so, override exit code to -1
+        let was_cancelled = state_clone.process.take_cancelled(&task_id);
+        let exit_code = if was_cancelled { -1 } else { raw_exit_code };
+
         // Resolve and parse log
         let log_path = resolve_log_path(&task_clone, &log_dir_owned);
-        let summary = log_parser::parse_robocopy_log(Path::new(&log_path));
+        let (summary, entries) = if was_cancelled {
+            (RunSummary {
+                dirs_total: None, dirs_copied: None, dirs_skipped: None, dirs_failed: None,
+                files_total: None, files_copied: None, files_skipped: None, files_failed: None,
+                bytes_total: None, bytes_copied: None, speed_bytes_per_sec: None,
+            }, Vec::new())
+        } else {
+            log_parser::parse_robocopy_log_full(Path::new(&log_path))
+        };
 
         // Update history
         let finished_at = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S").to_string();
@@ -268,13 +262,20 @@ fn spawn_single_task(
             .history
             .complete_run(run_id, &finished_at, exit_code, &summary);
 
+        // Insert parsed entries
+        let _ = state_clone.history.insert_entries(run_id, &entries);
+
+        // Signal that post-exit processing is done
+        state_clone.pending_completions.fetch_sub(1, Ordering::SeqCst);
+
         // Emit event to frontend
         let _ = app_handle.emit(
             "task-completed",
             serde_json::json!({
-                "task_id": task_id,
-                "run_id": run_id,
-                "exit_code": exit_code,
+                "taskId": task_id,
+                "runId": run_id,
+                "exitCode": exit_code,
+                "summary": null,
             }),
         );
     });
@@ -326,6 +327,7 @@ pub fn run() {
                 config: config_mgr,
                 history: history_mgr,
                 process: process_mgr,
+                pending_completions: AtomicUsize::new(0),
             });
 
             app.manage(state);
@@ -346,7 +348,25 @@ pub fn run() {
             get_runs,
             delete_run,
             cleanup_old_runs,
+            get_log_entries,
+            get_log_entry_counts,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app_handle, event| {
+            if let tauri::RunEvent::ExitRequested { api, .. } = &event {
+                let state: State<'_, Arc<AppState>> = app_handle.state();
+                let pending = state.pending_completions.load(Ordering::SeqCst);
+                if pending > 0 {
+                    api.prevent_exit();
+                    let state_clone = Arc::clone(&*state);
+                    std::thread::spawn(move || {
+                        while state_clone.pending_completions.load(Ordering::SeqCst) > 0 {
+                            std::thread::sleep(std::time::Duration::from_millis(100));
+                        }
+                        std::process::exit(0);
+                    });
+                }
+            }
+        });
 }
