@@ -77,11 +77,15 @@ pub fn parse_entry_line(line: &str) -> Option<ParsedEntry> {
         if let Some(pos) = trimmed.find(tag) {
             let after_tag = trimmed[pos + tag.len()..].trim();
             if is_dir {
-                if !after_tag.is_empty() {
+                // Directory lines may have a number before the path, e.g.:
+                //   *EXTRA Dir        -1    J:\local-backup\test\
+                // Strip any leading number/whitespace to get just the path.
+                let path = strip_leading_number(after_tag);
+                if !path.is_empty() {
                     return Some(ParsedEntry {
                         entry_type: name.to_string(),
                         size: None,
-                        path: after_tag.to_string(),
+                        path: path.to_string(),
                     });
                 }
             } else {
@@ -96,6 +100,19 @@ pub fn parse_entry_line(line: &str) -> Option<ParsedEntry> {
         }
     }
     None
+}
+
+fn strip_leading_number(s: &str) -> &str {
+    // Match optional leading number (possibly negative) followed by whitespace
+    // e.g. "-1    J:\path\" → "J:\path\"
+    //      "J:\path\" → "J:\path\"
+    let re = Regex::new(r"^-?\d+\s+(.+)$").ok();
+    if let Some(re) = re {
+        if let Some(caps) = re.captures(s) {
+            return caps.get(1).map(|m| m.as_str().trim()).unwrap_or(s);
+        }
+    }
+    s
 }
 
 fn split_size_and_path(s: &str) -> Option<(String, String)> {
@@ -304,11 +321,20 @@ mod tests {
 
     #[test]
     fn test_parse_entry_extra_dir() {
-        let line = "\t*EXTRA Dir  \t\tJ:\\local-backup\\c-user-petar-backup\\old-archive\\";
+        let line = "\t*EXTRA Dir  \t\t-1\tJ:\\local-backup\\c-user-petar-backup\\old-archive\\";
         let entry = parse_entry_line(line).unwrap();
         assert_eq!(entry.entry_type, "Extra Dir");
         assert_eq!(entry.size, None);
         assert_eq!(entry.path, "J:\\local-backup\\c-user-petar-backup\\old-archive\\");
+    }
+
+    #[test]
+    fn test_parse_entry_dir_without_number() {
+        let line = "\t  New Dir   \t\tC:\\Users\\petar\\Projects\\new-project\\";
+        let entry = parse_entry_line(line).unwrap();
+        assert_eq!(entry.entry_type, "New Dir");
+        assert_eq!(entry.size, None);
+        assert_eq!(entry.path, "C:\\Users\\petar\\Projects\\new-project\\");
     }
 
     #[test]
@@ -340,7 +366,7 @@ mod tests {
 
     #[test]
     fn test_parse_entry_new_dir() {
-        let line = "\t  New Dir   \t\tC:\\Users\\petar\\Projects\\new-project\\";
+        let line = "\t  New Dir   \t\t0\tC:\\Users\\petar\\Projects\\new-project\\";
         let entry = parse_entry_line(line).unwrap();
         assert_eq!(entry.entry_type, "New Dir");
         assert_eq!(entry.size, None);
