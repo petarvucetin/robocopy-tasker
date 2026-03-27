@@ -1,4 +1,4 @@
-use crate::models::{Run, RunSummary};
+use crate::models::{LogEntry, ParsedEntry, Run, RunSummary};
 use rusqlite::{params, Connection};
 use std::sync::Mutex;
 
@@ -34,6 +34,8 @@ impl HistoryManager {
     pub fn new(db_path: &str) -> Result<Self, String> {
         let conn = Connection::open(db_path)
             .map_err(|e| format!("Failed to open database: {}", e))?;
+        conn.execute_batch("PRAGMA foreign_keys = ON;")
+            .map_err(|e| format!("Failed to enable foreign keys: {}", e))?;
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS runs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,9 +47,17 @@ impl HistoryManager {
                 dirs_total INTEGER, dirs_copied INTEGER, dirs_skipped INTEGER, dirs_failed INTEGER,
                 files_total INTEGER, files_copied INTEGER, files_skipped INTEGER, files_failed INTEGER,
                 bytes_total INTEGER, bytes_copied INTEGER, speed_bytes_per_sec INTEGER
-            )",
+            );
+            CREATE TABLE IF NOT EXISTS run_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id INTEGER NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+                entry_type TEXT NOT NULL,
+                size INTEGER,
+                path TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_run_entries_run_id ON run_entries(run_id);",
         )
-        .map_err(|e| format!("Failed to create table: {}", e))?;
+        .map_err(|e| format!("Failed to create tables: {}", e))?;
         Ok(Self {
             conn: Mutex::new(conn),
         })
@@ -101,6 +111,107 @@ impl HistoryManager {
         )
         .map_err(|e| format!("Failed to complete run: {}", e))?;
         Ok(())
+    }
+
+    pub fn insert_entries(
+        &self,
+        run_id: i64,
+        entries: &[ParsedEntry],
+    ) -> Result<(), String> {
+        if entries.is_empty() {
+            return Ok(());
+        }
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {}", e))?;
+        let tx = conn.unchecked_transaction()
+            .map_err(|e| format!("Failed to start transaction: {}", e))?;
+        {
+            let mut stmt = tx
+                .prepare("INSERT INTO run_entries (run_id, entry_type, size, path) VALUES (?1, ?2, ?3, ?4)")
+                .map_err(|e| format!("Failed to prepare insert: {}", e))?;
+            for entry in entries {
+                stmt.execute(params![run_id, entry.entry_type, entry.size, entry.path])
+                    .map_err(|e| format!("Failed to insert entry: {}", e))?;
+            }
+        }
+        tx.commit()
+            .map_err(|e| format!("Failed to commit entries: {}", e))?;
+        Ok(())
+    }
+
+    pub fn get_entries(
+        &self,
+        run_id: i64,
+        entry_type: Option<&str>,
+        offset: u32,
+        limit: u32,
+    ) -> Result<Vec<LogEntry>, String> {
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {}", e))?;
+        match entry_type {
+            Some(et) => {
+                let mut stmt = conn
+                    .prepare(
+                        "SELECT id, run_id, entry_type, size, path FROM run_entries
+                         WHERE run_id = ?1 AND entry_type = ?2
+                         ORDER BY id LIMIT ?3 OFFSET ?4",
+                    )
+                    .map_err(|e| format!("Failed to prepare: {}", e))?;
+                let rows = stmt
+                    .query_map(params![run_id, et, limit, offset], |row| {
+                        Ok(LogEntry {
+                            id: row.get(0)?,
+                            run_id: row.get(1)?,
+                            entry_type: row.get(2)?,
+                            size: row.get(3)?,
+                            path: row.get(4)?,
+                        })
+                    })
+                    .map_err(|e| format!("Failed to query entries: {}", e))?;
+                rows.collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| format!("Failed to collect entries: {}", e))
+            }
+            None => {
+                let mut stmt = conn
+                    .prepare(
+                        "SELECT id, run_id, entry_type, size, path FROM run_entries
+                         WHERE run_id = ?1
+                         ORDER BY id LIMIT ?2 OFFSET ?3",
+                    )
+                    .map_err(|e| format!("Failed to prepare: {}", e))?;
+                let rows = stmt
+                    .query_map(params![run_id, limit, offset], |row| {
+                        Ok(LogEntry {
+                            id: row.get(0)?,
+                            run_id: row.get(1)?,
+                            entry_type: row.get(2)?,
+                            size: row.get(3)?,
+                            path: row.get(4)?,
+                        })
+                    })
+                    .map_err(|e| format!("Failed to query entries: {}", e))?;
+                rows.collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| format!("Failed to collect entries: {}", e))
+            }
+        }
+    }
+
+    pub fn get_entry_counts(
+        &self,
+        run_id: i64,
+    ) -> Result<Vec<(String, i64)>, String> {
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {}", e))?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT entry_type, COUNT(*) FROM run_entries
+                 WHERE run_id = ?1 GROUP BY entry_type ORDER BY entry_type",
+            )
+            .map_err(|e| format!("Failed to prepare: {}", e))?;
+        let rows = stmt
+            .query_map(params![run_id], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+            })
+            .map_err(|e| format!("Failed to query counts: {}", e))?;
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("Failed to collect counts: {}", e))
     }
 
     pub fn get_runs(
@@ -182,6 +293,7 @@ impl HistoryManager {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::ParsedEntry;
 
     fn test_manager() -> HistoryManager {
         HistoryManager::new(":memory:").unwrap()
@@ -297,5 +409,108 @@ mod tests {
         // Verify the completed run was not affected
         let runs1 = mgr.get_runs(Some("task-1"), None).unwrap();
         assert_eq!(runs1[0].exit_code, Some(0));
+    }
+
+    #[test]
+    fn test_insert_and_get_entries() {
+        let mgr = test_manager();
+        let run_id = mgr.insert_run("task-1", "Backup", "2025-01-01T10:00:00").unwrap();
+
+        let entries = vec![
+            ParsedEntry { entry_type: "New File".into(), size: Some(1024), path: "C:\\file1.txt".into() },
+            ParsedEntry { entry_type: "Extra Dir".into(), size: None, path: "D:\\old-dir\\".into() },
+            ParsedEntry { entry_type: "Failed".into(), size: None, path: "C:\\locked.dat".into() },
+        ];
+        mgr.insert_entries(run_id, &entries).unwrap();
+
+        let result = mgr.get_entries(run_id, None, 0, 100).unwrap();
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0].entry_type, "New File");
+        assert_eq!(result[0].size, Some(1024));
+        assert_eq!(result[0].path, "C:\\file1.txt");
+        assert_eq!(result[0].run_id, run_id);
+        assert_eq!(result[1].entry_type, "Extra Dir");
+        assert_eq!(result[1].size, None);
+    }
+
+    #[test]
+    fn test_get_entries_filtered_by_type() {
+        let mgr = test_manager();
+        let run_id = mgr.insert_run("task-1", "Backup", "2025-01-01T10:00:00").unwrap();
+
+        let entries = vec![
+            ParsedEntry { entry_type: "New File".into(), size: Some(100), path: "C:\\a.txt".into() },
+            ParsedEntry { entry_type: "New File".into(), size: Some(200), path: "C:\\b.txt".into() },
+            ParsedEntry { entry_type: "Extra Dir".into(), size: None, path: "D:\\old\\".into() },
+        ];
+        mgr.insert_entries(run_id, &entries).unwrap();
+
+        let new_files = mgr.get_entries(run_id, Some("New File"), 0, 100).unwrap();
+        assert_eq!(new_files.len(), 2);
+
+        let extra_dirs = mgr.get_entries(run_id, Some("Extra Dir"), 0, 100).unwrap();
+        assert_eq!(extra_dirs.len(), 1);
+    }
+
+    #[test]
+    fn test_get_entries_pagination() {
+        let mgr = test_manager();
+        let run_id = mgr.insert_run("task-1", "Backup", "2025-01-01T10:00:00").unwrap();
+
+        let entries: Vec<ParsedEntry> = (0..10).map(|i| ParsedEntry {
+            entry_type: "New File".into(),
+            size: Some(i * 100),
+            path: format!("C:\\file{}.txt", i),
+        }).collect();
+        mgr.insert_entries(run_id, &entries).unwrap();
+
+        let page1 = mgr.get_entries(run_id, None, 0, 3).unwrap();
+        assert_eq!(page1.len(), 3);
+
+        let page2 = mgr.get_entries(run_id, None, 3, 3).unwrap();
+        assert_eq!(page2.len(), 3);
+        assert_ne!(page1[0].id, page2[0].id);
+
+        let all = mgr.get_entries(run_id, None, 0, 100).unwrap();
+        assert_eq!(all.len(), 10);
+    }
+
+    #[test]
+    fn test_get_entry_counts() {
+        let mgr = test_manager();
+        let run_id = mgr.insert_run("task-1", "Backup", "2025-01-01T10:00:00").unwrap();
+
+        let entries = vec![
+            ParsedEntry { entry_type: "New File".into(), size: Some(100), path: "C:\\a.txt".into() },
+            ParsedEntry { entry_type: "New File".into(), size: Some(200), path: "C:\\b.txt".into() },
+            ParsedEntry { entry_type: "Extra Dir".into(), size: None, path: "D:\\old\\".into() },
+            ParsedEntry { entry_type: "Failed".into(), size: None, path: "C:\\bad.dat".into() },
+        ];
+        mgr.insert_entries(run_id, &entries).unwrap();
+
+        let counts = mgr.get_entry_counts(run_id).unwrap();
+        assert_eq!(counts.len(), 3);
+
+        let new_file_count = counts.iter().find(|(t, _)| t == "New File").unwrap().1;
+        assert_eq!(new_file_count, 2);
+
+        let extra_dir_count = counts.iter().find(|(t, _)| t == "Extra Dir").unwrap().1;
+        assert_eq!(extra_dir_count, 1);
+    }
+
+    #[test]
+    fn test_entries_cascade_delete() {
+        let mgr = test_manager();
+        let run_id = mgr.insert_run("task-1", "Backup", "2025-01-01T10:00:00").unwrap();
+
+        let entries = vec![
+            ParsedEntry { entry_type: "New File".into(), size: Some(100), path: "C:\\a.txt".into() },
+        ];
+        mgr.insert_entries(run_id, &entries).unwrap();
+
+        mgr.delete_run(run_id).unwrap();
+
+        let result = mgr.get_entries(run_id, None, 0, 100).unwrap();
+        assert!(result.is_empty());
     }
 }
