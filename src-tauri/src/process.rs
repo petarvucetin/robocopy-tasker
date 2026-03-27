@@ -1,5 +1,5 @@
 use crate::models::{RunningTask, Task};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
 
@@ -10,6 +10,7 @@ struct RunningEntry {
 
 pub struct ProcessManager {
     running: Mutex<HashMap<String, RunningEntry>>,
+    cancelled: Mutex<HashSet<String>>,
 }
 
 /// Resolve the log file path for a task. This is the single source of truth
@@ -40,6 +41,7 @@ impl ProcessManager {
     pub fn new() -> Self {
         Self {
             running: Mutex::new(HashMap::new()),
+            cancelled: Mutex::new(HashSet::new()),
         }
     }
 
@@ -167,19 +169,69 @@ impl ProcessManager {
         running.remove(task_id);
     }
 
+    /// Poll-based wait that releases the child lock between checks,
+    /// allowing `cancel_task` to kill the process via taskkill.
+    pub fn wait_for_exit(child_handle: &Arc<Mutex<Child>>) -> i32 {
+        loop {
+            {
+                let mut child = child_handle.lock().unwrap_or_else(|e| e.into_inner());
+                match child.try_wait() {
+                    Ok(Some(status)) => return status.code().unwrap_or(-3),
+                    Ok(None) => {}
+                    Err(_) => return -3,
+                }
+            } // lock released
+            std::thread::sleep(std::time::Duration::from_millis(250));
+        }
+    }
+
     pub fn cancel_task(&self, task_id: &str) -> Result<(), String> {
-        let running = self.running.lock().map_err(|e| format!("Lock error: {}", e))?;
-        let entry = running
-            .get(task_id)
-            .ok_or_else(|| format!("Task {} is not running", task_id))?;
-        let mut child = entry
-            .child
-            .lock()
-            .map_err(|e| format!("Child lock error: {}", e))?;
-        child
-            .kill()
-            .map_err(|e| format!("Failed to kill process: {}", e))?;
-        Ok(())
+        let pid = {
+            let running = self.running.lock().map_err(|e| format!("Lock error: {}", e))?;
+            let entry = running
+                .get(task_id)
+                .ok_or_else(|| format!("Task {} is not running", task_id))?;
+            entry.info.pid
+        };
+
+        // Mark as cancelled before killing so the background thread knows
+        {
+            let mut cancelled = self.cancelled.lock().unwrap_or_else(|e| e.into_inner());
+            cancelled.insert(task_id.to_string());
+        }
+
+        // Kill the entire process tree by PID — avoids needing the child lock
+        Self::kill_process_tree(pid)
+    }
+
+    /// Returns true if the task was cancelled (and removes the flag).
+    pub fn take_cancelled(&self, task_id: &str) -> bool {
+        let mut cancelled = self.cancelled.lock().unwrap_or_else(|e| e.into_inner());
+        cancelled.remove(task_id)
+    }
+
+    #[cfg(windows)]
+    fn kill_process_tree(pid: u32) -> Result<(), String> {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+        let status = Command::new("taskkill")
+            .args(["/F", "/T", "/PID", &pid.to_string()])
+            .creation_flags(CREATE_NO_WINDOW)
+            .status()
+            .map_err(|e| format!("Failed to run taskkill: {}", e))?;
+
+        if status.success() {
+            Ok(())
+        } else {
+            // taskkill may return non-zero if the process already exited
+            Ok(())
+        }
+    }
+
+    #[cfg(not(windows))]
+    fn kill_process_tree(_pid: u32) -> Result<(), String> {
+        Err("Process tree kill is only supported on Windows".into())
     }
 }
 
