@@ -47,8 +47,10 @@ export function HistoryView({ config }: HistoryViewProps) {
         <h2 className="text-xl font-semibold">Run History</h2>
         <div className="flex gap-2">
           <Select value={filterTaskId ?? "__all__"} onValueChange={(v: string | null) => setFilterTaskId(!v || v === "__all__" ? undefined : v)}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All tasks" />
+            <SelectTrigger className="w-96">
+              <SelectValue placeholder="All tasks">
+                {filterTaskId ? taskNames.get(filterTaskId) ?? filterTaskId : "All tasks"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">All tasks</SelectItem>
