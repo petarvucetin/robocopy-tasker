@@ -90,6 +90,22 @@ pub struct RunSummary {
     pub speed_bytes_per_sec: Option<i64>,
 }
 
+#[derive(Debug, Clone)]
+pub struct ParsedEntry {
+    pub entry_type: String,
+    pub size: Option<i64>,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogEntry {
+    pub id: i64,
+    pub run_id: i64,
+    pub entry_type: String,
+    pub size: Option<i64>,
+    pub path: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Run {
     pub id: i64,
