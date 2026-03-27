@@ -1,3 +1,4 @@
+import { confirm } from "@tauri-apps/plugin-dialog";
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { LogEntry } from "../../lib/types";
@@ -49,9 +50,11 @@ export function LogEntriesTable({ runId }: LogEntriesTableProps) {
   const handleRemove = async (entry: LogEntry) => {
     const isDir = entry.entry_type.includes("Dir");
     const kind = isDir ? "directory" : "file";
-    if (!confirm(`Delete ${kind}?\n\n${entry.path}\n\nThis cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm(`Delete ${kind}?\n\n${entry.path}\n\nThis cannot be undone.`, {
+      title: "Backup Gene",
+      kind: "warning",
+    });
+    if (!confirmed) return;
     setRemoving(entry.id);
     try {
       await commands.removePath(entry.path);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
-import { open } from "@tauri-apps/plugin-dialog";
+import { confirm, open } from "@tauri-apps/plugin-dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -97,7 +97,8 @@ export function SettingsView({ settings, onSave }: SettingsViewProps) {
             variant="destructive"
             className="w-fit"
             onClick={async () => {
-              if (!confirm("Reset all run history?\n\nThis deletes all runs and log entry details. Tasks and settings are not affected.\n\nThis cannot be undone.")) return;
+              const confirmed = await confirm("Reset all run history?\n\nThis deletes all runs and log entry details. Tasks and settings are not affected.\n\nThis cannot be undone.", { title: "Backup Gene", kind: "warning" });
+              if (!confirmed) return;
               try {
                 await commands.resetHistory();
                 alert("History reset. Refresh to see changes.");
