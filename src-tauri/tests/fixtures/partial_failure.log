@@ -12,6 +12,9 @@
 
 ------------------------------------------------------------------------------
 
+	  New File  		        102400	D:\Data\backup-file.zip
+	    Newer   		          8192	D:\Config\app.ini
+	*EXTRA File		         51200	J:\local-backup\d-backup\removed.bak
 2026/03/20 16:00:05 ERROR 5 (0x00000005) Copying File D:\locked-file.dat
 Access is denied.
 

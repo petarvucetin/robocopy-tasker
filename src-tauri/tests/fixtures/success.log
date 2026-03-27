@@ -12,6 +12,14 @@
 
 ------------------------------------------------------------------------------
 
+	*EXTRA Dir  		J:\local-backup\c-user-petar-backup\old-archive\
+	*EXTRA File		          1234	J:\local-backup\c-user-petar-backup\deleted-notes.txt
+	  New File  		       5678901	C:\Users\petar\Documents\report.docx
+	  New File  		          2048	C:\Users\petar\Desktop\todo.txt
+	  New Dir   		C:\Users\petar\Projects\new-project\
+	    Newer   		         90120	C:\Users\petar\Photos\vacation.jpg
+	 Modified   		          4096	C:\Users\petar\.config\settings.json
+
                            Total    Copied   Skipped  Mismatch    FAILED    Extras
     Dirs :       245        12       233         0         0         0
    Files :       892       142       750         0         0         0
