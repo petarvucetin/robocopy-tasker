@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e"/>
+      <stop offset="50%" stop-color="#115e59"/>
+      <stop offset="100%" stop-color="#134e4a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#0f766e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="strand1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5eead4"/>
+      <stop offset="50%" stop-color="#99f6e4"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="strand2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdfa"/>
+      <stop offset="50%" stop-color="#ccfbf1"/>
+      <stop offset="100%" stop-color="#f0fdfa"/>
+    </linearGradient>
+    <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#99f6e4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="url(#glow)"/>
+
+  <!-- DNA Double Helix -->
+  <g transform="translate(512, 512)">
+    <!-- Strand 1 -->
+    <path d="
+      M -30,-280
+      C 120,-230 120,-170 -30,-120
+      C -180,-70 -180,-10 -30,40
+      C 120,90 120,150 -30,200
+      C -130,230 -160,260 -80,280
+    " fill="none" stroke="url(#strand1)" stroke-width="38" stroke-linecap="round"/>
+
+    <!-- Strand 2 -->
+    <path d="
+      M 30,-280
+      C -120,-230 -120,-170 30,-120
+      C 180,-70 180,-10 30,40
+      C -120,90 -120,150 30,200
+      C 130,230 160,260 80,280
+    " fill="none" stroke="url(#strand2)" stroke-width="38" stroke-linecap="round"/>
+
+    <!-- Base pair rungs -->
+    <g stroke="#2dd4bf" stroke-width="14" stroke-linecap="round" opacity="0.6">
+      <line x1="-20" y1="-248" x2="20" y2="-248"/>
+      <line x1="55" y1="-200" x2="-55" y2="-200"/>
+      <line x1="75" y1="-165" x2="-75" y2="-165"/>
+      <line x1="-10" y1="-120" x2="10" y2="-120"/>
+      <line x1="-75" y1="-75" x2="75" y2="-75"/>
+      <line x1="-80" y1="-35" x2="80" y2="-35"/>
+      <line x1="-10" y1="40" x2="10" y2="40"/>
+      <line x1="70" y1="85" x2="-70" y2="85"/>
+      <line x1="80" y1="125" x2="-80" y2="125"/>
+      <line x1="-10" y1="200" x2="10" y2="200"/>
+      <line x1="-60" y1="235" x2="60" y2="235"/>
+    </g>
+
+    <!-- Sync arrow top-right -->
+    <g transform="translate(160,-220)">
+      <path d="M 50,0 A 50,50 0 1,1 0,-50" fill="none" stroke="url(#arrowGrad)" stroke-width="18" stroke-linecap="round"/>
+      <polygon points="0,-50 18,-38 6,-62" fill="#99f6e4"/>
+    </g>
+
+    <!-- Sync arrow bottom-left -->
+    <g transform="translate(-160,220) rotate(180)">
+      <path d="M 50,0 A 50,50 0 1,1 0,-50" fill="none" stroke="url(#arrowGrad)" stroke-width="18" stroke-linecap="round"/>
+      <polygon points="0,-50 18,-38 6,-62" fill="#99f6e4"/>
+    </g>
+  </g>
+</svg>
