@@ -1,4 +1,4 @@
-import { Pencil, Play, Square, Trash2 } from "lucide-react";
+import { Copy, Pencil, Play, Square, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { RecentRuns } from "./recent-runs";
 import type { Run, Task } from "../../lib/types";
@@ -10,10 +10,11 @@ interface TaskDetailProps {
   onRun: () => void;
   onCancel: () => void;
   onEdit: () => void;
+  onClone: () => void;
   onDelete: () => void;
 }
 
-export function TaskDetail({ task, isRunning, runs, onRun, onCancel, onEdit, onDelete }: TaskDetailProps) {
+export function TaskDetail({ task, isRunning, runs, onRun, onCancel, onEdit, onClone, onDelete }: TaskDetailProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -42,6 +43,9 @@ export function TaskDetail({ task, isRunning, runs, onRun, onCancel, onEdit, onD
         )}
         <Button variant="outline" onClick={onEdit}>
           <Pencil className="w-4 h-4 mr-2" /> Edit
+        </Button>
+        <Button variant="outline" onClick={onClone}>
+          <Copy className="w-4 h-4 mr-2" /> Clone
         </Button>
         <Button variant="outline" onClick={onDelete}>
           <Trash2 className="w-4 h-4 mr-2" /> Delete

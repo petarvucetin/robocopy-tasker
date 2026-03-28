@@ -58,6 +58,14 @@ function App() {
     }
   };
 
+  const handleCloneTask = () => {
+    if (selectedTask) {
+      setEditorState({
+        task: { ...selectedTask, id: crypto.randomUUID(), name: `${selectedTask.name} (copy)` },
+      });
+    }
+  };
+
   const handleSaveTask = async (task: Task) => {
     await saveTask(task);
     setEditorState(null);
@@ -138,6 +146,7 @@ function App() {
           onRun={handleRunTask}
           onCancel={handleCancelTask}
           onEdit={handleEditTask}
+          onClone={handleCloneTask}
           onDelete={handleDeleteTask}
         />
       )}
