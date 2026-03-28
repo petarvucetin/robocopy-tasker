@@ -35,7 +35,9 @@ function RunRow({ run }: { run: Run }) {
   const [showEntries, setShowEntries] = useState(false);
   const status = getExitStatus(run.exit_code);
   const color = getExitColor(status);
-  const date = new Date(run.started_at).toLocaleDateString();
+  const dt = new Date(run.started_at);
+  const date = dt.toLocaleDateString();
+  const time = dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div>
@@ -44,8 +46,8 @@ function RunRow({ run }: { run: Run }) {
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? <ChevronDown className="w-3 h-3 shrink-0" /> : <ChevronRight className="w-3 h-3 shrink-0" />}
-        <span className="text-muted-foreground w-16 shrink-0">{date}</span>
-        <span className={color}>{getExitLabel(run.exit_code)}</span>
+        <span className="text-muted-foreground shrink-0 mr-2">{date} {time}</span>
+        <span className={`${color} shrink-0`}>{getExitLabel(run.exit_code)}</span>
         {run.files_copied != null && (
           <span className="text-muted-foreground">
             {run.files_copied} copied{run.files_failed ? `, ${run.files_failed} failed` : ""}
