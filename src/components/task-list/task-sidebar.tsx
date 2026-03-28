@@ -53,7 +53,7 @@ export function TaskSidebar({
   }
 
   const getStatusDot = (taskId: string) => {
-    if (isRunning(taskId)) return "bg-blue-500 animate-pulse";
+    if (isRunning(taskId)) return "bg-blue-400 animate-blink shadow-[0_0_6px_2px_rgba(96,165,250,0.6)]";
     const lastRun = lastRuns[taskId];
     if (!lastRun) return "bg-gray-400";
     const status = getExitStatus(lastRun.exit_code);
