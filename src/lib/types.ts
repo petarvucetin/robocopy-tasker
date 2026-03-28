@@ -1,16 +1,41 @@
 export interface RobocopyOptions {
-  s: boolean;
-  j: boolean;
-  sj: boolean;
-  mt: number | null;
-  xj: boolean;
-  xjd: boolean;
-  xjf: boolean;
-  tee: boolean;
-  r: number | null;
-  w: number | null;
-  xd: string[];
-  xf: string[];
+  // Copy mode
+  s: boolean;          // /S  — Subdirectories (skip empty)
+  e: boolean;          // /E  — Subdirectories (include empty)
+  mir: boolean;        // /MIR — Mirror (/E + /PURGE)
+  purge: boolean;      // /PURGE — Delete dest files not in source
+  mov: boolean;        // /MOV — Move files (delete from source)
+  move: boolean;       // /MOVE — Move files and dirs
+  create: boolean;     // /CREATE — Create dir tree + zero-length files only
+  // Copy flags
+  z: boolean;          // /Z  — Restartable mode
+  b: boolean;          // /B  — Backup mode (uses BackupSemantics)
+  zb: boolean;         // /ZB — Restartable with backup fallback
+  j: boolean;          // /J  — Unbuffered I/O (large files)
+  copy: string | null; // /COPY:flags — e.g. "DATSOU"
+  dcopy: string | null;// /DCOPY:flags — e.g. "DAT"
+  sec: boolean;        // /SEC — Copy with security (equiv /COPY:DATS)
+  copyall: boolean;    // /COPYALL — Copy all file info (equiv /COPY:DATSOU)
+  nodcopy: boolean;    // /NODCOPY — Copy no directory info
+  // Junctions
+  sj: boolean;         // /SJ — Copy junctions as junctions
+  xj: boolean;         // /XJ — Exclude junction points
+  // File selection
+  xd: string[];        // /XD — Exclude directories
+  xf: string[];        // /XF — Exclude files
+  maxage: string | null;  // /MAXAGE:n — Max file age (days or YYYYMMDD)
+  minage: string | null;  // /MINAGE:n — Min file age
+  maxlad: string | null;  // /MAXLAD:n — Max last access date
+  minlad: string | null;  // /MINLAD:n — Min last access date
+  max: number | null;     // /MAX:n — Max file size (bytes)
+  min: number | null;     // /MIN:n — Min file size (bytes)
+  // Performance
+  mt: number | null;   // /MT:n — Multithreading (1-128)
+  r: number | null;    // /R:n — Retry count
+  w: number | null;    // /W:n — Wait between retries (seconds)
+  // Output
+  tee: boolean;        // /TEE — Console + log output
+  // Log (managed internally, not shown in UI)
   log: string | null;
 }
 
@@ -95,7 +120,12 @@ export interface TaskCompletedEvent {
 }
 
 export const DEFAULT_OPTIONS: RobocopyOptions = {
-  s: true, j: true, sj: false, mt: 64, xj: false,
-  xjd: false, xjf: false, tee: true, r: null, w: null,
-  xd: [], xf: [], log: null,
+  s: true, e: false, mir: false, purge: false, mov: false, move: false, create: false,
+  z: false, b: false, zb: false, j: true,
+  copy: null, dcopy: null, sec: false, copyall: false, nodcopy: false,
+  sj: false, xj: false,
+  xd: [], xf: [],
+  maxage: null, minage: null, maxlad: null, minlad: null, max: null, min: null,
+  mt: 16, r: null, w: null,
+  tee: true, log: null,
 };

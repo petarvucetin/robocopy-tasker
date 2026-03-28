@@ -105,9 +105,14 @@ mod tests {
             source: "C:\\Users\\test".into(),
             destination: "J:\\backup\\test".into(),
             options: RobocopyOptions {
-                s: true, j: true, sj: false, mt: Some(64), xj: false,
-                xjd: false, xjf: false, tee: true, r: None, w: None,
-                xd: vec![], xf: vec![], log: None,
+                s: true, e: false, mir: false, purge: false, mov: false, move_: false, create: false,
+                z: false, b: false, zb: false, j: true,
+                copy: None, dcopy: None, sec: false, copyall: false, nodcopy: false,
+                sj: false, xj: false,
+                xd: vec![], xf: vec![],
+                maxage: None, minage: None, maxlad: None, minlad: None, max: None, min: None,
+                mt: Some(16), r: None, w: None,
+                tee: true, log: None,
             },
             group: None,
         }

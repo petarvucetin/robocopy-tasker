@@ -52,58 +52,61 @@ impl ProcessManager {
         args.push(task.source.clone());
         args.push(task.destination.clone());
 
-        if opts.s {
-            args.push("/S".into());
-        }
-        if opts.j {
-            args.push("/J".into());
-        }
-        if opts.sj {
-            args.push("/SJ".into());
-        }
-        if let Some(mt) = opts.mt {
-            args.push(format!("/MT:{}", mt));
-        }
-        if opts.xj {
-            args.push("/XJ".into());
-        }
-        if opts.xjd {
-            args.push("/XJD".into());
-        }
-        if opts.xjf {
-            args.push("/XJF".into());
-        }
+        // Copy mode
+        if opts.s { args.push("/S".into()); }
+        if opts.e { args.push("/E".into()); }
+        if opts.mir { args.push("/MIR".into()); }
+        if opts.purge { args.push("/PURGE".into()); }
+        if opts.mov { args.push("/MOV".into()); }
+        if opts.move_ { args.push("/MOVE".into()); }
+        if opts.create { args.push("/CREATE".into()); }
+
+        // Copy flags
+        if opts.z { args.push("/Z".into()); }
+        if opts.b { args.push("/B".into()); }
+        if opts.zb { args.push("/ZB".into()); }
+        if opts.j { args.push("/J".into()); }
+        if let Some(ref copy) = opts.copy { args.push(format!("/COPY:{}", copy)); }
+        if let Some(ref dcopy) = opts.dcopy { args.push(format!("/DCOPY:{}", dcopy)); }
+        if opts.sec { args.push("/SEC".into()); }
+        if opts.copyall { args.push("/COPYALL".into()); }
+        if opts.nodcopy { args.push("/NODCOPY".into()); }
+
+        // Junctions
+        if opts.sj { args.push("/SJ".into()); }
+        if opts.xj { args.push("/XJ".into()); }
+
+        // File selection
         if !opts.xd.is_empty() {
             args.push("/XD".into());
-            for d in &opts.xd {
-                args.push(d.clone());
-            }
+            for d in &opts.xd { args.push(d.clone()); }
         }
         if !opts.xf.is_empty() {
             args.push("/XF".into());
-            for f in &opts.xf {
-                args.push(f.clone());
-            }
+            for f in &opts.xf { args.push(f.clone()); }
         }
-        if let Some(r) = opts.r {
-            args.push(format!("/R:{}", r));
-        }
-        if let Some(w) = opts.w {
-            args.push(format!("/W:{}", w));
-        }
+        if let Some(ref maxage) = opts.maxage { args.push(format!("/MAXAGE:{}", maxage)); }
+        if let Some(ref minage) = opts.minage { args.push(format!("/MINAGE:{}", minage)); }
+        if let Some(ref maxlad) = opts.maxlad { args.push(format!("/MAXLAD:{}", maxlad)); }
+        if let Some(ref minlad) = opts.minlad { args.push(format!("/MINLAD:{}", minlad)); }
+        if let Some(max) = opts.max { args.push(format!("/MAX:{}", max)); }
+        if let Some(min) = opts.min { args.push(format!("/MIN:{}", min)); }
 
+        // Performance
+        if let Some(mt) = opts.mt { args.push(format!("/MT:{}", mt)); }
+        if let Some(r) = opts.r { args.push(format!("/R:{}", r)); }
+        if let Some(w) = opts.w { args.push(format!("/W:{}", w)); }
+
+        // Log (always added)
         let log_path = resolve_log_path(task, log_directory);
         args.push(format!("/LOG:{}", log_path));
 
-        if opts.tee {
-            args.push("/TEE".into());
-        }
+        // Output
+        if opts.tee { args.push("/TEE".into()); }
 
-        // Always include defaults for consistent behavior
-        args.push("/NP".into());
+        // Always-on flags for consistent behavior
         args.push("/BYTES".into());
         args.push("/ETA".into());
-        args.push("/Z".into());
 
         args
     }
@@ -249,19 +252,16 @@ mod tests {
             source: "C:\\Users\\test".into(),
             destination: "J:\\backup\\test".into(),
             options: RobocopyOptions {
-                s: true,
-                j: true,
-                sj: false,
-                mt: Some(64),
-                xj: true,
-                xjd: false,
-                xjf: false,
-                tee: true,
-                r: Some(3),
-                w: Some(5),
+                s: true, e: false, mir: false, purge: false, mov: false, move_: false, create: false,
+                z: false, b: false, zb: false, j: true,
+                copy: None, dcopy: None, sec: false, copyall: false, nodcopy: false,
+                sj: false, xj: true,
                 xd: vec!["node_modules".into(), ".git".into()],
                 xf: vec!["*.tmp".into()],
-                log: None,
+                maxage: None, minage: None, maxlad: None, minlad: None, max: None, min: None,
+                mt: Some(64),
+                r: Some(3), w: Some(5),
+                tee: true, log: None,
             },
             group: None,
         }
@@ -274,19 +274,14 @@ mod tests {
             source: "C:\\Data".into(),
             destination: "D:\\Backup".into(),
             options: RobocopyOptions {
-                s: true,
-                j: false,
-                sj: false,
-                mt: None,
-                xj: false,
-                xjd: false,
-                xjf: false,
-                tee: false,
-                r: None,
-                w: None,
-                xd: vec![],
-                xf: vec![],
-                log: None,
+                s: true, e: false, mir: false, purge: false, mov: false, move_: false, create: false,
+                z: false, b: false, zb: false, j: false,
+                copy: None, dcopy: None, sec: false, copyall: false, nodcopy: false,
+                sj: false, xj: false,
+                xd: vec![], xf: vec![],
+                maxage: None, minage: None, maxlad: None, minlad: None, max: None, min: None,
+                mt: None, r: None, w: None,
+                tee: false, log: None,
             },
             group: None,
         }
@@ -311,9 +306,12 @@ mod tests {
         assert!(args.contains(&"/XF".into()));
         assert!(args.contains(&"*.tmp".into()));
         assert!(args.contains(&"/TEE".into()));
-        assert!(args.contains(&"/NP".into()));
+        assert!(!args.contains(&"/NP".into()));
         assert!(args.contains(&"/BYTES".into()));
+        assert!(args.contains(&"/ETA".into()));
         assert!(args.contains(&"/LOG:C:\\Logs\\C-User-Local.log".into()));
+        // /Z is no longer hardcoded — it's a user-toggleable option
+        assert!(!args.contains(&"/Z".into()));
     }
 
     #[test]
@@ -353,15 +351,13 @@ mod tests {
         assert!(!args.contains(&"/J".into()));
         assert!(!args.contains(&"/SJ".into()));
         assert!(!args.contains(&"/XJ".into()));
-        assert!(!args.contains(&"/XJD".into()));
-        assert!(!args.contains(&"/XJF".into()));
         assert!(!args.contains(&"/TEE".into()));
         assert!(!args.contains(&"/XD".into()));
         assert!(!args.contains(&"/XF".into()));
         assert!(!args.iter().any(|a| a.starts_with("/MT:")));
         assert!(!args.iter().any(|a| a.starts_with("/R:")));
         assert!(!args.iter().any(|a| a.starts_with("/W:")));
-        assert!(args.contains(&"/NP".into()));
+        assert!(!args.contains(&"/NP".into()));
         assert!(args.contains(&"/BYTES".into()));
         assert!(args.contains(&"/LOG:C:\\Logs\\Simple-Backup.log".into()));
     }

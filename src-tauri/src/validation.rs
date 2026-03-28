@@ -103,9 +103,14 @@ mod tests {
     #[test]
     fn test_mt_range_validation() {
         let mut opts = RobocopyOptions {
-            s: false, j: false, sj: false, mt: Some(0), xj: false,
-            xjd: false, xjf: false, tee: false, r: None, w: None,
-            xd: vec![], xf: vec![], log: None,
+            s: false, e: false, mir: false, purge: false, mov: false, move_: false, create: false,
+            z: false, b: false, zb: false, j: false,
+            copy: None, dcopy: None, sec: false, copyall: false, nodcopy: false,
+            sj: false, xj: false,
+            xd: vec![], xf: vec![],
+            maxage: None, minage: None, maxlad: None, minlad: None, max: None, min: None,
+            mt: Some(0), r: None, w: None,
+            tee: false, log: None,
         };
         assert!(validate_options(&opts).is_err());
         opts.mt = Some(129);
@@ -119,9 +124,14 @@ mod tests {
     #[test]
     fn test_log_path_must_be_absolute() {
         let mut opts = RobocopyOptions {
-            s: false, j: false, sj: false, mt: None, xj: false,
-            xjd: false, xjf: false, tee: false, r: None, w: None,
-            xd: vec![], xf: vec![], log: Some("relative/path.log".into()),
+            s: false, e: false, mir: false, purge: false, mov: false, move_: false, create: false,
+            z: false, b: false, zb: false, j: false,
+            copy: None, dcopy: None, sec: false, copyall: false, nodcopy: false,
+            sj: false, xj: false,
+            xd: vec![], xf: vec![],
+            maxage: None, minage: None, maxlad: None, minlad: None, max: None, min: None,
+            mt: None, r: None, w: None,
+            tee: false, log: Some("relative/path.log".into()),
         };
         assert!(validate_options(&opts).is_err());
         opts.log = Some("C:\\logs\\backup.log".into());
@@ -131,9 +141,14 @@ mod tests {
     #[test]
     fn test_empty_xd_entry_rejected() {
         let opts = RobocopyOptions {
-            s: false, j: false, sj: false, mt: None, xj: false,
-            xjd: false, xjf: false, tee: false, r: None, w: None,
-            xd: vec!["".into()], xf: vec![], log: None,
+            s: false, e: false, mir: false, purge: false, mov: false, move_: false, create: false,
+            z: false, b: false, zb: false, j: false,
+            copy: None, dcopy: None, sec: false, copyall: false, nodcopy: false,
+            sj: false, xj: false,
+            xd: vec!["".into()], xf: vec![],
+            maxage: None, minage: None, maxlad: None, minlad: None, max: None, min: None,
+            mt: None, r: None, w: None,
+            tee: false, log: None,
         };
         assert!(validate_options(&opts).is_err());
     }

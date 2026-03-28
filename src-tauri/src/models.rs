@@ -2,30 +2,73 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RobocopyOptions {
+    // Copy mode
     #[serde(default)]
     pub s: bool,
     #[serde(default)]
+    pub e: bool,
+    #[serde(default)]
+    pub mir: bool,
+    #[serde(default)]
+    pub purge: bool,
+    #[serde(default)]
+    pub mov: bool,
+    #[serde(default, rename = "move")]
+    pub move_: bool,
+    #[serde(default)]
+    pub create: bool,
+    // Copy flags
+    #[serde(default)]
+    pub z: bool,
+    #[serde(default)]
+    pub b: bool,
+    #[serde(default)]
+    pub zb: bool,
+    #[serde(default)]
     pub j: bool,
+    #[serde(default)]
+    pub copy: Option<String>,
+    #[serde(default)]
+    pub dcopy: Option<String>,
+    #[serde(default)]
+    pub sec: bool,
+    #[serde(default)]
+    pub copyall: bool,
+    #[serde(default)]
+    pub nodcopy: bool,
+    // Junctions
     #[serde(default)]
     pub sj: bool,
     #[serde(default)]
-    pub mt: Option<u32>,
-    #[serde(default)]
     pub xj: bool,
-    #[serde(default)]
-    pub xjd: bool,
-    #[serde(default)]
-    pub xjf: bool,
-    #[serde(default)]
-    pub tee: bool,
-    #[serde(default)]
-    pub r: Option<u32>,
-    #[serde(default)]
-    pub w: Option<u32>,
+    // File selection
     #[serde(default)]
     pub xd: Vec<String>,
     #[serde(default)]
     pub xf: Vec<String>,
+    #[serde(default)]
+    pub maxage: Option<String>,
+    #[serde(default)]
+    pub minage: Option<String>,
+    #[serde(default)]
+    pub maxlad: Option<String>,
+    #[serde(default)]
+    pub minlad: Option<String>,
+    #[serde(default)]
+    pub max: Option<u64>,
+    #[serde(default)]
+    pub min: Option<u64>,
+    // Performance
+    #[serde(default)]
+    pub mt: Option<u32>,
+    #[serde(default)]
+    pub r: Option<u32>,
+    #[serde(default)]
+    pub w: Option<u32>,
+    // Output
+    #[serde(default)]
+    pub tee: bool,
+    // Log (managed internally)
     #[serde(default)]
     pub log: Option<String>,
 }
