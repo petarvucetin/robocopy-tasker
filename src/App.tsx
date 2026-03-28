@@ -4,20 +4,21 @@ import { TaskSidebar } from "./components/task-list/task-sidebar";
 import { TaskDetail } from "./components/task-list/task-detail";
 import { TaskEditor } from "./components/task-editor/task-editor";
 import { HistoryView } from "./components/run-history/history-view";
+import { SettingsView } from "./components/settings/settings-view";
 import { useConfig } from "./hooks/use-config";
 import { useRunningTasks } from "./hooks/use-running-tasks";
 import { useRuns } from "./hooks/use-runs";
 import type { Task, Run } from "./lib/types";
 import { commands } from "./lib/commands";
 
-type View = "tasks" | "history";
+type View = "tasks" | "history" | "settings";
 type EditorState = { task: Task | null } | null;
 
 function App() {
   const [view, setView] = useState<View>("tasks");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [editorState, setEditorState] = useState<EditorState>(null);
-  const { config, loading, saveTask, deleteTask } = useConfig();
+  const { config, loading, saveTask, deleteTask, updateSettings } = useConfig();
   const { isRunning, runTask, cancelTask } = useRunningTasks();
 
   // Fetch runs for selected task (detail view)
@@ -106,6 +107,12 @@ function App() {
         >
           Run History
         </button>
+        <button
+          className={`w-full text-left px-3 py-2 rounded text-sm ${view === "settings" ? "bg-accent" : "hover:bg-accent/50"}`}
+          onClick={() => setView("settings")}
+        >
+          Settings
+        </button>
       </div>
     </div>
   );
@@ -139,6 +146,9 @@ function App() {
       )}
       {view === "history" && (
         <HistoryView config={config} />
+      )}
+      {view === "settings" && (
+        <SettingsView settings={config.settings} onSave={updateSettings} />
       )}
     </AppShell>
   );
