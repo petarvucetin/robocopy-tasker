@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight, FolderPlus, Pencil, Play, Plus, Trash2, Check, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getVersion } from "@tauri-apps/api/app";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -35,6 +36,9 @@ export function TaskSidebar({
   const [editingName, setEditingName] = useState("");
   const [addingGroup, setAddingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+  const [version, setVersion] = useState("");
+
+  useEffect(() => { getVersion().then(setVersion); }, []);
 
   const toggleGroup = (groupId: string) => {
     setCollapsed((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
@@ -105,6 +109,7 @@ export function TaskSidebar({
     <div className="flex flex-col h-full">
       <div className="p-4 border-b border-border">
         <h1 className="text-lg font-semibold">backup-gene</h1>
+        {version && <p className="text-xs text-muted-foreground">v{version}</p>}
       </div>
 
       <div className="flex-1 overflow-auto p-2">
