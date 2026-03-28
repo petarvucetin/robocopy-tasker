@@ -18,7 +18,7 @@ function App() {
   const [view, setView] = useState<View>("tasks");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [editorState, setEditorState] = useState<EditorState>(null);
-  const { config, loading, saveTask, deleteTask, updateSettings } = useConfig();
+  const { config, loading, saveTask, deleteTask, saveGroup, deleteGroup, updateSettings } = useConfig();
   const { isRunning, runTask, cancelTask } = useRunningTasks();
 
   // Fetch runs for selected task (detail view)
@@ -91,6 +91,8 @@ function App() {
         onSelectTask={(id) => { setSelectedTaskId(id); setEditorState(null); }}
         onRunGroup={handleRunGroup}
         onNewTask={handleNewTask}
+        onSaveGroup={saveGroup}
+        onDeleteGroup={deleteGroup}
         isRunning={isRunning}
         lastRuns={lastRuns}
       />

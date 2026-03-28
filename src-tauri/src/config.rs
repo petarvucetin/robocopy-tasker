@@ -111,7 +111,7 @@ mod tests {
                 sj: false, xj: false,
                 xd: vec![], xf: vec![],
                 maxage: None, minage: None, maxlad: None, minlad: None, max: None, min: None,
-                mt: Some(16), r: None, w: None,
+                mt: Some(8), r: None, w: None,
                 tee: true, log: None,
             },
             group: None,

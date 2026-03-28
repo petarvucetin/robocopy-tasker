@@ -126,6 +126,6 @@ export const DEFAULT_OPTIONS: RobocopyOptions = {
   sj: false, xj: false,
   xd: [], xf: [],
   maxage: null, minage: null, maxlad: null, minlad: null, max: null, min: null,
-  mt: 16, r: null, w: null,
+  mt: 8, r: null, w: null,
   tee: true, log: null,
 };

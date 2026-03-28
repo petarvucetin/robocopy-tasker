@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backup Gene — Icon Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0e;
+    --surface: #16161a;
+    --surface-hover: #1e1e24;
+    --border: #2a2a32;
+    --text: #e8e6e3;
+    --text-dim: #7f7f8c;
+    --accent: #4f8cff;
+    --accent-glow: rgba(79, 140, 255, 0.15);
+    --green: #3dd68c;
+    --amber: #f0b429;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  header {
+    text-align: center;
+    padding: 80px 24px 20px;
+  }
+
+  header h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 3.2rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--text-dim) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeUp 0.8s ease-out;
+  }
+
+  header p {
+    margin-top: 12px;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    font-weight: 300;
+    animation: fadeUp 0.8s ease-out 0.1s both;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 28px;
+    max-width: 1200px;
+    margin: 48px auto 80px;
+    padding: 0 32px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.7s ease-out both;
+  }
+
+  .card:nth-child(1) { animation-delay: 0.15s; }
+  .card:nth-child(2) { animation-delay: 0.25s; }
+  .card:nth-child(3) { animation-delay: 0.35s; }
+  .card:nth-child(4) { animation-delay: 0.45s; }
+  .card:nth-child(5) { animation-delay: 0.55s; }
+  .card:nth-child(6) { animation-delay: 0.65s; }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+
+  .card:hover {
+    border-color: #3a3a44;
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px var(--accent-glow);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .icon-wrap {
+    width: 128px;
+    height: 128px;
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .icon-wrap svg {
+    width: 128px;
+    height: 128px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  }
+
+  .card-label {
+    text-align: center;
+  }
+
+  .card-label h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .card-label p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 300;
+    line-height: 1.5;
+    max-width: 280px;
+  }
+
+  .sizes {
+    display: flex;
+    align-items: end;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sizes .sz {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sizes .sz span {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  .sizes .sz svg {
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(79, 140, 255, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(79, 140, 255, 0.15);
+    margin-top: 4px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* DNA animation for concept 1 */
+  @keyframes helixSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .card:hover .helix-rotate {
+    animation: helixSpin 8s linear infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+
+  .card:hover .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Backup Gene — Icon Concepts</h1>
+  <p>Six directions for the app icon. Hover to interact. Pick your favorite.</p>
+</header>
+
+<div class="grid">
+
+  <!-- 1. DNA Helix Shield -->
+  <div class="card">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g1a" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1a3a6e"/>
+            <stop offset="100%" stop-color="#0d1f3c"/>
+          </linearGradient>
+          <linearGradient id="g1b" x1="0" y1="0" x2="0.5" y2="1">
+            <stop offset="0%" stop-color="#4f8cff"/>
+            <stop offset="100%" stop-color="#3dd68c"/>
+          </linearGradient>
+          <linearGradient id="g1c" x1="0.5" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#6ba3ff"/>
+            <stop offset="100%" stop-color="#2bc4a0"/>
+          </linearGradient>
+          <filter id="f1glow">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Rounded square base -->
+        <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g1a)" stroke="#2a4a7a" stroke-width="1"/>
+        <!-- Shield shape -->
+        <path d="M64 22 L96 36 L96 62 C96 82 82 98 64 106 C46 98 32 82 32 62 L32 36 Z"
+              fill="none" stroke="url(#g1b)" stroke-width="2" opacity="0.3"/>
+        <!-- DNA double helix -->
+        <g filter="url(#f1glow)" class="helix-rotate" style="transform-origin: 64px 64px;">
+          <!-- Strand 1 -->
+          <path d="M52 32 C52 40 76 44 76 52 C76 60 52 64 52 72 C52 80 76 84 76 92"
+                fill="none" stroke="url(#g1b)" stroke-width="3" stroke-linecap="round"/>
+          <!-- Strand 2 -->
+          <path d="M76 32 C76 40 52 44 52 52 C52 60 76 64 76 72 C76 80 52 84 52 92"
+                fill="none" stroke="url(#g1c)" stroke-width="3" stroke-linecap="round"/>
+          <!-- Rungs -->
+          <line x1="54" y1="38" x2="74" y2="38" stroke="#4f8cff" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <line x1="52" y1="52" x2="76" y2="52" stroke="#3dd68c" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <line x1="54" y1="66" x2="74" y2="66" stroke="#4f8cff" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <line x1="52" y1="80" x2="76" y2="80" stroke="#3dd68c" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <!-- Dots at crossover points -->
+          <circle cx="64" cy="45" r="2.5" fill="#4f8cff"/>
+          <circle cx="64" cy="59" r="2.5" fill="#3dd68c"/>
+          <circle cx="64" cy="73" r="2.5" fill="#4f8cff"/>
+          <circle cx="64" cy="87" r="2.5" fill="#3dd68c"/>
+        </g>
+      </svg>
+    </div>
+    <div class="card-label">
+      <h3>Helix Shield</h3>
+      <p>DNA double helix inside a protective shield silhouette. Genetics meets data protection.</p>
+      <span class="tag">DNA + Protection</span>
+    </div>
+    <div class="sizes">
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#132c54"/>
+          <path d="M52 32 C52 40 76 44 76 52 C76 60 52 64 52 72 C52 80 76 84 76 92" fill="none" stroke="#4f8cff" stroke-width="4" stroke-linecap="round"/>
+          <path d="M76 32 C76 40 52 44 52 52 C52 60 76 64 76 72 C76 80 52 84 52 92" fill="none" stroke="#3dd68c" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <span>16</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#132c54"/>
+          <path d="M52 32 C52 40 76 44 76 52 C76 60 52 64 52 72 C52 80 76 84 76 92" fill="none" stroke="#4f8cff" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M76 32 C76 40 52 44 52 52 C52 60 76 64 76 72 C76 80 52 84 52 92" fill="none" stroke="#3dd68c" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="64" cy="45" r="2.5" fill="#4f8cff"/><circle cx="64" cy="59" r="2.5" fill="#3dd68c"/>
+          <circle cx="64" cy="73" r="2.5" fill="#4f8cff"/><circle cx="64" cy="87" r="2.5" fill="#3dd68c"/>
+        </svg>
+        <span>32</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g1a)" stroke="#2a4a7a" stroke-width="1"/>
+          <path d="M52 32 C52 40 76 44 76 52 C76 60 52 64 52 72 C52 80 76 84 76 92" fill="none" stroke="url(#g1b)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M76 32 C76 40 52 44 52 52 C52 60 76 64 76 72 C76 80 52 84 52 92" fill="none" stroke="url(#g1c)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="54" y1="38" x2="74" y2="38" stroke="#4f8cff" stroke-width="1.5" opacity="0.5"/>
+          <line x1="52" y1="52" x2="76" y2="52" stroke="#3dd68c" stroke-width="1.5" opacity="0.5"/>
+          <line x1="54" y1="66" x2="74" y2="66" stroke="#4f8cff" stroke-width="1.5" opacity="0.5"/>
+          <circle cx="64" cy="45" r="2.5" fill="#4f8cff"/><circle cx="64" cy="59" r="2.5" fill="#3dd68c"/>
+          <circle cx="64" cy="73" r="2.5" fill="#4f8cff"/><circle cx="64" cy="87" r="2.5" fill="#3dd68c"/>
+        </svg>
+        <span>64</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Circular Arrows + Helix -->
+  <div class="card">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g2a" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1b2838"/>
+            <stop offset="100%" stop-color="#0f1923"/>
+          </linearGradient>
+          <linearGradient id="g2b" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#22d3ee"/>
+            <stop offset="100%" stop-color="#4f8cff"/>
+          </linearGradient>
+          <linearGradient id="g2c" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f0b429"/>
+            <stop offset="100%" stop-color="#f97316"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g2a)" stroke="#253545" stroke-width="1"/>
+        <!-- Circular sync arrows -->
+        <path d="M64 28 A36 36 0 0 1 96 54" fill="none" stroke="url(#g2b)" stroke-width="3.5" stroke-linecap="round"/>
+        <polygon points="97,48 100,56 92,56" fill="#22d3ee"/>
+        <path d="M64 100 A36 36 0 0 1 32 74" fill="none" stroke="url(#g2c)" stroke-width="3.5" stroke-linecap="round"/>
+        <polygon points="31,80 28,72 36,72" fill="#f0b429"/>
+        <!-- Center helix mark -->
+        <path d="M56 46 C56 52 72 54 72 60 C72 66 56 68 56 74 C56 80 72 82 72 88"
+              fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+        <path d="M72 46 C72 52 56 54 56 60 C56 66 72 68 72 74 C72 80 56 82 56 88"
+              fill="none" stroke="#f0b429" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+        <circle cx="64" cy="53" r="2" fill="#fff" opacity="0.8"/>
+        <circle cx="64" cy="67" r="2" fill="#fff" opacity="0.8"/>
+        <circle cx="64" cy="81" r="2" fill="#fff" opacity="0.8"/>
+      </svg>
+    </div>
+    <div class="card-label">
+      <h3>Sync Helix</h3>
+      <p>Circular sync arrows orbit a compact DNA strand. Emphasizes the continuous backup cycle.</p>
+      <span class="tag">Sync + DNA</span>
+    </div>
+    <div class="sizes">
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#152230"/>
+          <path d="M64 28 A36 36 0 0 1 96 54" fill="none" stroke="#22d3ee" stroke-width="5" stroke-linecap="round"/>
+          <path d="M64 100 A36 36 0 0 1 32 74" fill="none" stroke="#f0b429" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>16</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#152230"/>
+          <path d="M64 28 A36 36 0 0 1 96 54" fill="none" stroke="#22d3ee" stroke-width="4" stroke-linecap="round"/>
+          <polygon points="97,48 100,56 92,56" fill="#22d3ee"/>
+          <path d="M64 100 A36 36 0 0 1 32 74" fill="none" stroke="#f0b429" stroke-width="4" stroke-linecap="round"/>
+          <polygon points="31,80 28,72 36,72" fill="#f0b429"/>
+          <circle cx="64" cy="64" r="4" fill="#fff" opacity="0.6"/>
+        </svg>
+        <span>32</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g2a)" stroke="#253545" stroke-width="1"/>
+          <path d="M64 28 A36 36 0 0 1 96 54" fill="none" stroke="url(#g2b)" stroke-width="3.5" stroke-linecap="round"/>
+          <polygon points="97,48 100,56 92,56" fill="#22d3ee"/>
+          <path d="M64 100 A36 36 0 0 1 32 74" fill="none" stroke="url(#g2c)" stroke-width="3.5" stroke-linecap="round"/>
+          <polygon points="31,80 28,72 36,72" fill="#f0b429"/>
+          <path d="M56 46 C56 52 72 54 72 60 C72 66 56 68 56 74 C56 80 72 82 72 88" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M72 46 C72 52 56 54 56 60 C56 66 72 68 72 74 C72 80 56 82 56 88" fill="none" stroke="#f0b429" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="64" cy="53" r="2" fill="#fff" opacity="0.8"/>
+          <circle cx="64" cy="67" r="2" fill="#fff" opacity="0.8"/>
+          <circle cx="64" cy="81" r="2" fill="#fff" opacity="0.8"/>
+        </svg>
+        <span>64</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Monogram BG -->
+  <div class="card">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g3a" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1a1a2e"/>
+            <stop offset="100%" stop-color="#12121e"/>
+          </linearGradient>
+          <linearGradient id="g3b" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#a78bfa"/>
+            <stop offset="100%" stop-color="#6366f1"/>
+          </linearGradient>
+          <linearGradient id="g3strand" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="#6366f1" stop-opacity="0.15"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g3a)" stroke="#2a2a42" stroke-width="1"/>
+        <!-- Decorative helix in background -->
+        <path d="M90 18 C90 30 104 34 104 46 C104 58 90 62 90 74 C90 86 104 90 104 102"
+              fill="none" stroke="url(#g3strand)" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M104 18 C104 30 90 34 90 46 C90 58 104 62 104 74 C104 86 90 90 90 102"
+              fill="none" stroke="url(#g3strand)" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- B letterform -->
+        <text x="28" y="86" font-family="Georgia, 'Times New Roman', serif" font-size="62" font-weight="700" fill="url(#g3b)">B</text>
+        <!-- G letterform, overlapping -->
+        <text x="62" y="92" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="400" font-style="italic" fill="#e0d6ff" opacity="0.75">g</text>
+      </svg>
+    </div>
+    <div class="card-label">
+      <h3>Monogram</h3>
+      <p>Classic serif "Bg" lettermark with a subtle helix accent. Refined and typographic.</p>
+      <span class="tag">Typographic</span>
+    </div>
+    <div class="sizes">
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#161626"/>
+          <text x="28" y="86" font-family="Georgia, serif" font-size="62" font-weight="700" fill="#a78bfa">B</text>
+          <text x="62" y="92" font-family="Georgia, serif" font-size="48" font-style="italic" fill="#e0d6ff" opacity="0.7">g</text>
+        </svg>
+        <span>16</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#161626"/>
+          <text x="28" y="86" font-family="Georgia, serif" font-size="62" font-weight="700" fill="#a78bfa">B</text>
+          <text x="62" y="92" font-family="Georgia, serif" font-size="48" font-style="italic" fill="#e0d6ff" opacity="0.7">g</text>
+        </svg>
+        <span>32</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g3a)" stroke="#2a2a42" stroke-width="1"/>
+          <path d="M90 18 C90 30 104 34 104 46 C104 58 90 62 90 74 C90 86 104 90 104 102" fill="none" stroke="url(#g3strand)" stroke-width="1.5"/>
+          <path d="M104 18 C104 30 90 34 90 46 C90 58 104 62 104 74 C104 86 90 90 90 102" fill="none" stroke="url(#g3strand)" stroke-width="1.5"/>
+          <text x="28" y="86" font-family="Georgia, serif" font-size="62" font-weight="700" fill="url(#g3b)">B</text>
+          <text x="62" y="92" font-family="Georgia, serif" font-size="48" font-style="italic" fill="#e0d6ff" opacity="0.75">g</text>
+        </svg>
+        <span>64</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Folder + DNA -->
+  <div class="card">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g4a" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1c2b1c"/>
+            <stop offset="100%" stop-color="#0f1a0f"/>
+          </linearGradient>
+          <linearGradient id="g4folder" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3dd68c"/>
+            <stop offset="100%" stop-color="#22a06b"/>
+          </linearGradient>
+          <linearGradient id="g4helix1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3dd68c"/>
+            <stop offset="100%" stop-color="#a3e635"/>
+          </linearGradient>
+          <linearGradient id="g4helix2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#86efac"/>
+            <stop offset="100%" stop-color="#4ade80"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g4a)" stroke="#2a4a2a" stroke-width="1"/>
+        <!-- Folder base -->
+        <path d="M28 42 L28 92 C28 95 30 97 33 97 L95 97 C98 97 100 95 100 92 L100 52 C100 49 98 47 95 47 L62 47 L56 38 C55 37 54 36 52 36 L33 36 C30 36 28 38 28 42Z"
+              fill="url(#g4folder)" opacity="0.2" stroke="url(#g4folder)" stroke-width="1.5"/>
+        <!-- Folder tab -->
+        <path d="M28 42 L28 47 L100 47 L100 52 C100 49 98 47 95 47 L62 47 L56 38 C55 37 54 36 52 36 L33 36 C30 36 28 38 28 42Z"
+              fill="url(#g4folder)" opacity="0.35"/>
+        <!-- DNA strand emerging from folder -->
+        <path d="M56 54 C56 60 72 62 72 68 C72 74 56 76 56 82 C56 88 72 90 72 96"
+              fill="none" stroke="url(#g4helix1)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M72 54 C72 60 56 62 56 68 C56 74 72 76 72 82 C72 80 56 84 56 96"
+              fill="none" stroke="url(#g4helix2)" stroke-width="3" stroke-linecap="round"/>
+        <!-- Rungs -->
+        <line x1="57" y1="58" x2="71" y2="58" stroke="#4ade80" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+        <line x1="56" y1="68" x2="72" y2="68" stroke="#a3e635" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+        <line x1="57" y1="78" x2="71" y2="78" stroke="#4ade80" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+        <line x1="56" y1="88" x2="72" y2="88" stroke="#a3e635" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+        <!-- Glow dots -->
+        <circle cx="64" cy="63" r="2" fill="#a3e635" class="pulse-glow"/>
+        <circle cx="64" cy="73" r="2" fill="#4ade80" class="pulse-glow"/>
+        <circle cx="64" cy="83" r="2" fill="#a3e635" class="pulse-glow"/>
+      </svg>
+    </div>
+    <div class="card-label">
+      <h3>Folder Helix</h3>
+      <p>A DNA strand emerging from a folder. Files carry genetic instructions — so do backups.</p>
+      <span class="tag">Files + Biology</span>
+    </div>
+    <div class="sizes">
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#142014"/>
+          <path d="M28 42 L28 92 C28 95 30 97 33 97 L95 97 C98 97 100 95 100 92 L100 52 C100 49 98 47 95 47 L62 47 L56 38 C55 37 54 36 52 36 L33 36 C30 36 28 38 28 42Z" fill="#3dd68c" opacity="0.25" stroke="#3dd68c" stroke-width="2"/>
+          <path d="M56 54 C56 62 72 64 72 72 C72 80 56 82 56 90" fill="none" stroke="#3dd68c" stroke-width="4" stroke-linecap="round"/>
+          <path d="M72 54 C72 62 56 64 56 72 C56 80 72 82 72 90" fill="none" stroke="#86efac" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <span>16</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#142014"/>
+          <path d="M28 42 L28 92 C28 95 30 97 33 97 L95 97 C98 97 100 95 100 92 L100 52 C100 49 98 47 95 47 L62 47 L56 38 C55 37 54 36 52 36 L33 36 C30 36 28 38 28 42Z" fill="#3dd68c" opacity="0.2" stroke="#3dd68c" stroke-width="1.5"/>
+          <path d="M56 54 C56 60 72 62 72 68 C72 74 56 76 56 82 C56 88 72 90 72 96" fill="none" stroke="#3dd68c" stroke-width="3" stroke-linecap="round"/>
+          <path d="M72 54 C72 60 56 62 56 68 C56 74 72 76 72 82 C72 80 56 84 56 96" fill="none" stroke="#86efac" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span>32</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g4a)" stroke="#2a4a2a" stroke-width="1"/>
+          <path d="M28 42 L28 92 C28 95 30 97 33 97 L95 97 C98 97 100 95 100 92 L100 52 C100 49 98 47 95 47 L62 47 L56 38 C55 37 54 36 52 36 L33 36 C30 36 28 38 28 42Z" fill="url(#g4folder)" opacity="0.2" stroke="url(#g4folder)" stroke-width="1.5"/>
+          <path d="M56 54 C56 60 72 62 72 68 C72 74 56 76 56 82 C56 88 72 90 72 96" fill="none" stroke="url(#g4helix1)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M72 54 C72 60 56 62 56 68 C56 74 72 76 72 82 C72 80 56 84 56 96" fill="none" stroke="url(#g4helix2)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="64" cy="63" r="2" fill="#a3e635"/><circle cx="64" cy="73" r="2" fill="#4ade80"/><circle cx="64" cy="83" r="2" fill="#a3e635"/>
+        </svg>
+        <span>64</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Abstract G with helix -->
+  <div class="card">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g5a" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2d1b3e"/>
+            <stop offset="100%" stop-color="#1a0f28"/>
+          </linearGradient>
+          <linearGradient id="g5arc" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#f472b6"/>
+            <stop offset="100%" stop-color="#c084fc"/>
+          </linearGradient>
+          <linearGradient id="g5h1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f472b6"/>
+            <stop offset="100%" stop-color="#fb923c"/>
+          </linearGradient>
+          <linearGradient id="g5h2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#c084fc"/>
+            <stop offset="100%" stop-color="#818cf8"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g5a)" stroke="#3d2854" stroke-width="1"/>
+        <!-- Large G arc -->
+        <path d="M84 52 A28 28 0 1 0 84 76 L68 76"
+              fill="none" stroke="url(#g5arc)" stroke-width="5" stroke-linecap="round"/>
+        <!-- DNA inside the G -->
+        <path d="M52 48 C52 54 68 56 68 62 C68 68 52 70 52 76 C52 82 68 84 68 90"
+              fill="none" stroke="url(#g5h1)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M68 48 C68 54 52 56 52 62 C52 68 68 70 68 76 C68 82 52 84 52 90"
+              fill="none" stroke="url(#g5h2)" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Cross dots -->
+        <circle cx="60" cy="55" r="2" fill="#fbbf24" opacity="0.9"/>
+        <circle cx="60" cy="69" r="2" fill="#fbbf24" opacity="0.9"/>
+        <circle cx="60" cy="83" r="2" fill="#fbbf24" opacity="0.9"/>
+      </svg>
+    </div>
+    <div class="card-label">
+      <h3>Gene Arc</h3>
+      <p>The letter G forms a protective arc around a DNA strand. Bold, warm, and immediately readable.</p>
+      <span class="tag">Letterform + Helix</span>
+    </div>
+    <div class="sizes">
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#221434"/>
+          <path d="M84 52 A28 28 0 1 0 84 76 L68 76" fill="none" stroke="#f472b6" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="60" cy="64" r="4" fill="#fbbf24"/>
+        </svg>
+        <span>16</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#221434"/>
+          <path d="M84 52 A28 28 0 1 0 84 76 L68 76" fill="none" stroke="#f472b6" stroke-width="5" stroke-linecap="round"/>
+          <path d="M52 48 C52 56 68 58 68 66 C68 74 52 76 52 84" fill="none" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/>
+          <path d="M68 48 C68 56 52 58 52 66 C52 74 68 76 68 84" fill="none" stroke="#c084fc" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span>32</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g5a)" stroke="#3d2854" stroke-width="1"/>
+          <path d="M84 52 A28 28 0 1 0 84 76 L68 76" fill="none" stroke="url(#g5arc)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M52 48 C52 54 68 56 68 62 C68 68 52 70 52 76 C52 82 68 84 68 90" fill="none" stroke="url(#g5h1)" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M68 48 C68 54 52 56 52 62 C52 68 68 70 68 76 C68 82 52 84 52 90" fill="none" stroke="url(#g5h2)" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="60" cy="55" r="2" fill="#fbbf24"/><circle cx="60" cy="69" r="2" fill="#fbbf24"/><circle cx="60" cy="83" r="2" fill="#fbbf24"/>
+        </svg>
+        <span>64</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Minimal Arrow Helix -->
+  <div class="card">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g6a" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1e1e22"/>
+            <stop offset="100%" stop-color="#141416"/>
+          </linearGradient>
+          <linearGradient id="g6s1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4f8cff"/>
+            <stop offset="100%" stop-color="#38bdf8"/>
+          </linearGradient>
+          <linearGradient id="g6s2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f8fafc"/>
+            <stop offset="50%" stop-color="#cbd5e1"/>
+            <stop offset="100%" stop-color="#94a3b8"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g6a)" stroke="#2a2a30" stroke-width="1"/>
+        <!-- Two thick intertwined strands with arrows -->
+        <path d="M48 24 C48 38 80 42 80 56 C80 70 48 74 48 88 C48 96 58 100 64 104"
+              fill="none" stroke="url(#g6s1)" stroke-width="4.5" stroke-linecap="round"/>
+        <!-- Arrow tip on strand 1 -->
+        <polygon points="64,104 56,96 64,98" fill="#38bdf8"/>
+        <path d="M80 24 C80 38 48 42 48 56 C48 70 80 74 80 88 C80 96 70 100 64 104"
+              fill="none" stroke="url(#g6s2)" stroke-width="4.5" stroke-linecap="round"/>
+        <!-- Arrow tip on strand 2 -->
+        <polygon points="64,104 72,96 64,98" fill="#cbd5e1"/>
+        <!-- Subtle rungs -->
+        <line x1="52" y1="34" x2="76" y2="34" stroke="#4f8cff" stroke-width="1" opacity="0.25" stroke-linecap="round"/>
+        <line x1="48" y1="56" x2="80" y2="56" stroke="#4f8cff" stroke-width="1" opacity="0.25" stroke-linecap="round"/>
+        <line x1="52" y1="78" x2="76" y2="78" stroke="#4f8cff" stroke-width="1" opacity="0.25" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="card-label">
+      <h3>Converge</h3>
+      <p>Two helical paths converging to a single point — source and destination unified. Clean and modern.</p>
+      <span class="tag">Minimal + Flow</span>
+    </div>
+    <div class="sizes">
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#191920"/>
+          <path d="M48 24 C48 38 80 42 80 56 C80 70 48 74 48 88 C48 96 58 100 64 104" fill="none" stroke="#4f8cff" stroke-width="6" stroke-linecap="round"/>
+          <path d="M80 24 C80 38 48 42 48 56 C48 70 80 74 80 88 C80 96 70 100 64 104" fill="none" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round"/>
+        </svg>
+        <span>16</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#191920"/>
+          <path d="M48 24 C48 38 80 42 80 56 C80 70 48 74 48 88 C48 96 58 100 64 104" fill="none" stroke="#4f8cff" stroke-width="5" stroke-linecap="round"/>
+          <path d="M80 24 C80 38 48 42 48 56 C48 70 80 74 80 88 C80 96 70 100 64 104" fill="none" stroke="#cbd5e1" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>32</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g6a)" stroke="#2a2a30" stroke-width="1"/>
+          <path d="M48 24 C48 38 80 42 80 56 C80 70 48 74 48 88 C48 96 58 100 64 104" fill="none" stroke="url(#g6s1)" stroke-width="4.5" stroke-linecap="round"/>
+          <polygon points="64,104 56,96 64,98" fill="#38bdf8"/>
+          <path d="M80 24 C80 38 48 42 48 56 C48 70 80 74 80 88 C80 96 70 100 64 104" fill="none" stroke="url(#g6s2)" stroke-width="4.5" stroke-linecap="round"/>
+          <polygon points="64,104 72,96 64,98" fill="#cbd5e1"/>
+          <line x1="52" y1="34" x2="76" y2="34" stroke="#4f8cff" stroke-width="1" opacity="0.25"/>
+          <line x1="48" y1="56" x2="80" y2="56" stroke="#4f8cff" stroke-width="1" opacity="0.25"/>
+          <line x1="52" y1="78" x2="76" y2="78" stroke="#4f8cff" stroke-width="1" opacity="0.25"/>
+        </svg>
+        <span>64</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Upward Arrow + Helix (Bold) -->
+  <div class="card">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g7a" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stop-color="#0a1628"/>
+            <stop offset="100%" stop-color="#162040"/>
+          </linearGradient>
+          <linearGradient id="g7arrow" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stop-color="#0ea5e9"/>
+            <stop offset="100%" stop-color="#38bdf8"/>
+          </linearGradient>
+          <linearGradient id="g7h1" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stop-color="#0ea5e9"/>
+            <stop offset="100%" stop-color="#67e8f9"/>
+          </linearGradient>
+          <linearGradient id="g7h2" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stop-color="#f97316"/>
+            <stop offset="100%" stop-color="#fbbf24"/>
+          </linearGradient>
+          <filter id="f7glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g7a)" stroke="#1e3455" stroke-width="1"/>
+        <!-- Upward arrow backdrop -->
+        <path d="M64 26 L82 48 L72 48 L72 100 L56 100 L56 48 L46 48 Z"
+              fill="url(#g7arrow)" opacity="0.12"/>
+        <!-- DNA helix inside arrow -->
+        <g filter="url(#f7glow)">
+          <path d="M56 36 C56 44 72 48 72 56 C72 64 56 68 56 76 C56 84 72 88 72 96"
+                fill="none" stroke="url(#g7h1)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M72 36 C72 44 56 48 56 56 C56 64 72 68 72 76 C72 84 56 88 56 96"
+                fill="none" stroke="url(#g7h2)" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <!-- Rungs -->
+        <line x1="58" y1="42" x2="70" y2="42" stroke="#67e8f9" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+        <line x1="56" y1="56" x2="72" y2="56" stroke="#fbbf24" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+        <line x1="58" y1="70" x2="70" y2="70" stroke="#67e8f9" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+        <line x1="56" y1="84" x2="72" y2="84" stroke="#fbbf24" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+        <!-- Arrow tip at top -->
+        <polygon points="64,26 74,40 54,40" fill="url(#g7h1)" opacity="0.7"/>
+        <!-- Dots -->
+        <circle cx="64" cy="49" r="2.5" fill="#67e8f9"/>
+        <circle cx="64" cy="63" r="2.5" fill="#fbbf24"/>
+        <circle cx="64" cy="77" r="2.5" fill="#67e8f9"/>
+        <circle cx="64" cy="91" r="2.5" fill="#fbbf24"/>
+      </svg>
+    </div>
+    <div class="card-label">
+      <h3>Upload Helix</h3>
+      <p>An upward arrow silhouette houses the helix. Backup = sending data upward. Energetic and directional.</p>
+      <span class="tag">Action + DNA</span>
+    </div>
+    <div class="sizes">
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#0e1a30"/>
+          <polygon points="64,26 74,40 54,40" fill="#67e8f9" opacity="0.8"/>
+          <path d="M56 40 C56 52 72 56 72 68 C72 80 56 84 56 96" fill="none" stroke="#0ea5e9" stroke-width="5" stroke-linecap="round"/>
+          <path d="M72 40 C72 52 56 56 56 68 C56 80 72 84 72 96" fill="none" stroke="#f97316" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>16</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="#0e1a30"/>
+          <polygon points="64,26 74,40 54,40" fill="#67e8f9" opacity="0.7"/>
+          <path d="M56 36 C56 44 72 48 72 56 C72 64 56 68 56 76 C56 84 72 88 72 96" fill="none" stroke="#0ea5e9" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M72 36 C72 44 56 48 56 56 C56 64 72 68 72 76 C72 84 56 88 56 96" fill="none" stroke="#f97316" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="64" cy="49" r="2.5" fill="#67e8f9"/><circle cx="64" cy="63" r="2.5" fill="#fbbf24"/>
+        </svg>
+        <span>32</span>
+      </div>
+      <div class="sz">
+        <svg viewBox="0 0 128 128" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#g7a)" stroke="#1e3455" stroke-width="1"/>
+          <path d="M64 26 L82 48 L72 48 L72 100 L56 100 L56 48 L46 48 Z" fill="url(#g7arrow)" opacity="0.12"/>
+          <path d="M56 36 C56 44 72 48 72 56 C72 64 56 68 56 76 C56 84 72 88 72 96" fill="none" stroke="url(#g7h1)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M72 36 C72 44 56 48 56 56 C56 64 72 68 72 76 C72 84 56 88 56 96" fill="none" stroke="url(#g7h2)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="58" y1="42" x2="70" y2="42" stroke="#67e8f9" stroke-width="1.5" opacity="0.4"/>
+          <line x1="56" y1="56" x2="72" y2="56" stroke="#fbbf24" stroke-width="1.5" opacity="0.4"/>
+          <polygon points="64,26 74,40 54,40" fill="url(#g7h1)" opacity="0.7"/>
+          <circle cx="64" cy="49" r="2.5" fill="#67e8f9"/><circle cx="64" cy="63" r="2.5" fill="#fbbf24"/>
+          <circle cx="64" cy="77" r="2.5" fill="#67e8f9"/><circle cx="64" cy="91" r="2.5" fill="#fbbf24"/>
+        </svg>
+        <span>64</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
